@@ -53,6 +53,7 @@ include_directories(
 )
 
 find_package(GTest REQUIRED)
+find_package(jsoncpp REQUIRED)
 
 # 链接库  TODO
 target_link_libraries(
@@ -60,4 +61,5 @@ target_link_libraries(
     PRIVATE               # PRIVATE/PUBLIC/INTERFACE
     GTest::GTest          # 链接 GTest 库
     GTest::Main           # 链接 GTest 主库
+    jsoncpp
 )
