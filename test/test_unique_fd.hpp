@@ -18,7 +18,7 @@ static int MakeFd()
 // ============================================================
 TEST(UniqueFdTest, DefaultConstruct)
 {
-    cfl::UniqueFd ufd;
+    cpp_toolkit::UniqueFd ufd;
     EXPECT_FALSE(ufd.IsValid());
     EXPECT_FALSE(ufd);
     EXPECT_EQ(ufd.GetFd(), -1);
@@ -30,7 +30,7 @@ TEST(UniqueFdTest, DefaultConstruct)
 TEST(UniqueFdTest, ExplicitConstruct)
 {
     int fd = MakeFd();
-    cfl::UniqueFd ufd(fd);
+    cpp_toolkit::UniqueFd ufd(fd);
     EXPECT_TRUE(ufd.IsValid());
     EXPECT_TRUE(ufd);
     EXPECT_EQ(ufd.GetFd(), fd);
@@ -38,13 +38,13 @@ TEST(UniqueFdTest, ExplicitConstruct)
 
 TEST(UniqueFdTest, ExplicitConstructMinusOne)
 {
-    cfl::UniqueFd ufd(-1);
+    cpp_toolkit::UniqueFd ufd(-1);
     EXPECT_FALSE(ufd.IsValid());
     EXPECT_EQ(ufd.GetFd(), -1);
 }
 
 // 确认 explicit 生效：以下代码不应编译
-// void foo(cfl::UniqueFd ufd) {}
+// void foo(cpp_toolkit::UniqueFd ufd) {}
 // void test() { foo(5); }  // 编译错误，explicit 阻止隐式转换
 
 // ============================================================
@@ -53,8 +53,8 @@ TEST(UniqueFdTest, ExplicitConstructMinusOne)
 TEST(UniqueFdTest, MoveConstruct)
 {
     int fd = MakeFd();
-    cfl::UniqueFd src(fd);
-    cfl::UniqueFd dst(std::move(src));
+    cpp_toolkit::UniqueFd src(fd);
+    cpp_toolkit::UniqueFd dst(std::move(src));
 
     // dst 接管了 fd
     EXPECT_TRUE(dst.IsValid());
@@ -67,8 +67,8 @@ TEST(UniqueFdTest, MoveConstruct)
 
 TEST(UniqueFdTest, MoveConstructFromInvalid)
 {
-    cfl::UniqueFd src;
-    cfl::UniqueFd dst(std::move(src));
+    cpp_toolkit::UniqueFd src;
+    cpp_toolkit::UniqueFd dst(std::move(src));
 
     EXPECT_FALSE(dst.IsValid());
     EXPECT_FALSE(src.IsValid());
@@ -82,8 +82,8 @@ TEST(UniqueFdTest, MoveAssign)
     int fd1 = MakeFd();
     int fd2 = MakeFd();
 
-    cfl::UniqueFd ufd1(fd1);
-    cfl::UniqueFd ufd2(fd2);
+    cpp_toolkit::UniqueFd ufd1(fd1);
+    cpp_toolkit::UniqueFd ufd2(fd2);
 
     ufd1 = std::move(ufd2);
 
@@ -103,7 +103,7 @@ TEST(UniqueFdTest, MoveAssign)
 TEST(UniqueFdTest, MoveAssignSelf)
 {
     int fd = MakeFd();
-    cfl::UniqueFd ufd(fd);
+    cpp_toolkit::UniqueFd ufd(fd);
 
     // 自赋值不应出错
     ufd = std::move(ufd);
@@ -114,8 +114,8 @@ TEST(UniqueFdTest, MoveAssignSelf)
 TEST(UniqueFdTest, MoveAssignToInvalid)
 {
     int fd = MakeFd();
-    cfl::UniqueFd src(fd);
-    cfl::UniqueFd dst;
+    cpp_toolkit::UniqueFd src(fd);
+    cpp_toolkit::UniqueFd dst;
 
     dst = std::move(src);
 
@@ -127,8 +127,8 @@ TEST(UniqueFdTest, MoveAssignToInvalid)
 TEST(UniqueFdTest, MoveAssignFromInvalid)
 {
     int fd = MakeFd();
-    cfl::UniqueFd src;
-    cfl::UniqueFd dst(fd);
+    cpp_toolkit::UniqueFd src;
+    cpp_toolkit::UniqueFd dst(fd);
 
     dst = std::move(src);
 
@@ -142,13 +142,13 @@ TEST(UniqueFdTest, MoveAssignFromInvalid)
 TEST(UniqueFdTest, GetFd)
 {
     int fd = MakeFd();
-    cfl::UniqueFd ufd(fd);
+    cpp_toolkit::UniqueFd ufd(fd);
     EXPECT_EQ(ufd.GetFd(), fd);
 }
 
 TEST(UniqueFdTest, GetFdInvalid)
 {
-    cfl::UniqueFd ufd;
+    cpp_toolkit::UniqueFd ufd;
     EXPECT_EQ(ufd.GetFd(), -1);
 }
 
@@ -158,14 +158,14 @@ TEST(UniqueFdTest, GetFdInvalid)
 TEST(UniqueFdTest, BoolTrue)
 {
     int fd = MakeFd();
-    cfl::UniqueFd ufd(fd);
+    cpp_toolkit::UniqueFd ufd(fd);
     EXPECT_TRUE(ufd);
     EXPECT_TRUE(ufd.IsValid());
 }
 
 TEST(UniqueFdTest, BoolFalse)
 {
-    cfl::UniqueFd ufd;
+    cpp_toolkit::UniqueFd ufd;
     EXPECT_FALSE(ufd);
     EXPECT_FALSE(ufd.IsValid());
 }
@@ -176,7 +176,7 @@ TEST(UniqueFdTest, BoolFalse)
 TEST(UniqueFdTest, Release)
 {
     int fd = MakeFd();
-    cfl::UniqueFd ufd(fd);
+    cpp_toolkit::UniqueFd ufd(fd);
 
     int released = ufd.Release();
 
@@ -191,7 +191,7 @@ TEST(UniqueFdTest, Release)
 
 TEST(UniqueFdTest, ReleaseInvalid)
 {
-    cfl::UniqueFd ufd;
+    cpp_toolkit::UniqueFd ufd;
     int released = ufd.Release();
     EXPECT_EQ(released, -1);
 }
@@ -202,7 +202,7 @@ TEST(UniqueFdTest, ReleaseInvalid)
 TEST(UniqueFdTest, ResetFromInvalid)
 {
     int fd = MakeFd();
-    cfl::UniqueFd ufd;
+    cpp_toolkit::UniqueFd ufd;
 
     ufd.Reset(fd);
 
@@ -213,7 +213,7 @@ TEST(UniqueFdTest, ResetFromInvalid)
 TEST(UniqueFdTest, ResetToInvalid)
 {
     int fd = MakeFd();
-    cfl::UniqueFd ufd(fd);
+    cpp_toolkit::UniqueFd ufd(fd);
 
     ufd.Reset(-1);
 
@@ -225,7 +225,7 @@ TEST(UniqueFdTest, ResetToNewFd)
 {
     int fd1 = MakeFd();
     int fd2 = MakeFd();
-    cfl::UniqueFd ufd(fd1);
+    cpp_toolkit::UniqueFd ufd(fd1);
 
     ufd.Reset(fd2);
 
@@ -239,7 +239,7 @@ TEST(UniqueFdTest, ResetToNewFd)
 TEST(UniqueFdTest, ResetToSameFd)
 {
     int fd = MakeFd();
-    cfl::UniqueFd ufd(fd);
+    cpp_toolkit::UniqueFd ufd(fd);
 
     // 重置为同一个 fd，不应关闭
     ufd.Reset(fd);
@@ -258,7 +258,7 @@ TEST(UniqueFdTest, DestructClosesFd)
     EXPECT_EQ(fcntl(fd, F_GETFD), 0);  // fd 有效
 
     {
-        cfl::UniqueFd ufd(fd);
+        cpp_toolkit::UniqueFd ufd(fd);
     }  // 析构
 
     // fd 应该已经被关闭
@@ -268,7 +268,7 @@ TEST(UniqueFdTest, DestructClosesFd)
 TEST(UniqueFdTest, DestructInvalidNoop)
 {
     // 不应崩溃
-    cfl::UniqueFd ufd;
+    cpp_toolkit::UniqueFd ufd;
 }
 
 TEST(UniqueFdTest, MoveConstructDestructClosesCorrectly)
@@ -276,8 +276,8 @@ TEST(UniqueFdTest, MoveConstructDestructClosesCorrectly)
     int fd = MakeFd();
 
     {
-        cfl::UniqueFd src(fd);
-        cfl::UniqueFd dst(std::move(src));
+        cpp_toolkit::UniqueFd src(fd);
+        cpp_toolkit::UniqueFd dst(std::move(src));
         // src 析构时不应关闭 fd（已移交）
         // dst 析构时应关闭 fd
     }
@@ -290,13 +290,13 @@ TEST(UniqueFdTest, MoveConstructDestructClosesCorrectly)
 // ============================================================
 // TEST(UniqueFdTest, CopyConstructDeleted)
 // {
-//     cfl::UniqueFd ufd(MakeFd());
-//     cfl::UniqueFd copy(ufd);  // 编译错误
+//     cpp_toolkit::UniqueFd ufd(MakeFd());
+//     cpp_toolkit::UniqueFd copy(ufd);  // 编译错误
 // }
 //
 // TEST(UniqueFdTest, CopyAssignDeleted)
 // {
-//     cfl::UniqueFd ufd1(MakeFd());
-//     cfl::UniqueFd ufd2(MakeFd());
+//     cpp_toolkit::UniqueFd ufd1(MakeFd());
+//     cpp_toolkit::UniqueFd ufd2(MakeFd());
 //     ufd1 = ufd2;  // 编译错误
 // }

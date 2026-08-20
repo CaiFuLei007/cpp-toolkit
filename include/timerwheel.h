@@ -18,7 +18,7 @@
 #include <atomic>
 #include <mutex>
 
-namespace cfl
+namespace cpp_toolkit
 {
 
 class TimeTask
@@ -104,4 +104,4 @@ public:
     void Start();
 };
 
-} // namespace cfl
+} // namespace cpp_toolkit

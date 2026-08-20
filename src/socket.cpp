@@ -5,7 +5,7 @@
 #include <unistd.h>
 #include <arpa/inet.h>
 
-namespace cfl
+namespace cpp_toolkit
 {
 
 int Socket::CreateFd()
@@ -99,4 +99,4 @@ bool Socket::CreateClient(uint16_t port, std::string_view addr)
     return true;
 }
 
-} // namespace cfl
+} // namespace cpp_toolkit

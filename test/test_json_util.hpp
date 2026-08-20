@@ -8,7 +8,7 @@ TEST(JsonUtilTest, UnSerializeObject)
 {
     Json::Value json;
     std::string_view str = R"({"name":"test","value":42})";
-    EXPECT_TRUE(cfl::JsonUtil::UnSerialize(json, str));
+    EXPECT_TRUE(cpp_toolkit::JsonUtil::UnSerialize(json, str));
     EXPECT_EQ(json["name"].asString(), "test");
     EXPECT_EQ(json["value"].asInt(), 42);
 }
@@ -17,7 +17,7 @@ TEST(JsonUtilTest, UnSerializeArray)
 {
     Json::Value json;
     std::string_view str = R"([1,2,3,"hello"])";
-    EXPECT_TRUE(cfl::JsonUtil::UnSerialize(json, str));
+    EXPECT_TRUE(cpp_toolkit::JsonUtil::UnSerialize(json, str));
     EXPECT_TRUE(json.isArray());
     EXPECT_EQ(json.size(), 4u);
     EXPECT_EQ(json[0].asInt(), 1);
@@ -28,7 +28,7 @@ TEST(JsonUtilTest, UnSerializeNestedObject)
 {
     Json::Value json;
     std::string_view str = R"({"user":{"name":"alice","age":30},"active":true})";
-    EXPECT_TRUE(cfl::JsonUtil::UnSerialize(json, str));
+    EXPECT_TRUE(cpp_toolkit::JsonUtil::UnSerialize(json, str));
     EXPECT_EQ(json["user"]["name"].asString(), "alice");
     EXPECT_EQ(json["user"]["age"].asInt(), 30);
     EXPECT_TRUE(json["active"].asBool());
@@ -38,7 +38,7 @@ TEST(JsonUtilTest, UnSerializeNestedArray)
 {
     Json::Value json;
     std::string_view str = R"({"matrix":[[1,2],[3,4]]})";
-    EXPECT_TRUE(cfl::JsonUtil::UnSerialize(json, str));
+    EXPECT_TRUE(cpp_toolkit::JsonUtil::UnSerialize(json, str));
     EXPECT_EQ(json["matrix"][0][0].asInt(), 1);
     EXPECT_EQ(json["matrix"][1][1].asInt(), 4);
 }
@@ -47,29 +47,29 @@ TEST(JsonUtilTest, UnSerializePrimitives)
 {
     Json::Value json;
 
-    EXPECT_TRUE(cfl::JsonUtil::UnSerialize(json, "42"));
+    EXPECT_TRUE(cpp_toolkit::JsonUtil::UnSerialize(json, "42"));
     EXPECT_EQ(json.asInt(), 42);
 
-    EXPECT_TRUE(cfl::JsonUtil::UnSerialize(json, "3.14"));
+    EXPECT_TRUE(cpp_toolkit::JsonUtil::UnSerialize(json, "3.14"));
     EXPECT_DOUBLE_EQ(json.asDouble(), 3.14);
 
-    EXPECT_TRUE(cfl::JsonUtil::UnSerialize(json, "true"));
+    EXPECT_TRUE(cpp_toolkit::JsonUtil::UnSerialize(json, "true"));
     EXPECT_TRUE(json.asBool());
 
-    EXPECT_TRUE(cfl::JsonUtil::UnSerialize(json, "false"));
+    EXPECT_TRUE(cpp_toolkit::JsonUtil::UnSerialize(json, "false"));
     EXPECT_FALSE(json.asBool());
 
-    EXPECT_TRUE(cfl::JsonUtil::UnSerialize(json, "null"));
+    EXPECT_TRUE(cpp_toolkit::JsonUtil::UnSerialize(json, "null"));
     EXPECT_TRUE(json.isNull());
 
-    EXPECT_TRUE(cfl::JsonUtil::UnSerialize(json, R"("hello")"));
+    EXPECT_TRUE(cpp_toolkit::JsonUtil::UnSerialize(json, R"("hello")"));
     EXPECT_EQ(json.asString(), "hello");
 }
 
 TEST(JsonUtilTest, UnSerializeEmptyObject)
 {
     Json::Value json;
-    EXPECT_TRUE(cfl::JsonUtil::UnSerialize(json, "{}"));
+    EXPECT_TRUE(cpp_toolkit::JsonUtil::UnSerialize(json, "{}"));
     EXPECT_TRUE(json.isObject());
     EXPECT_EQ(json.size(), 0u);
 }
@@ -77,7 +77,7 @@ TEST(JsonUtilTest, UnSerializeEmptyObject)
 TEST(JsonUtilTest, UnSerializeEmptyArray)
 {
     Json::Value json;
-    EXPECT_TRUE(cfl::JsonUtil::UnSerialize(json, "[]"));
+    EXPECT_TRUE(cpp_toolkit::JsonUtil::UnSerialize(json, "[]"));
     EXPECT_TRUE(json.isArray());
     EXPECT_EQ(json.size(), 0u);
 }
@@ -91,7 +91,7 @@ TEST(JsonUtilTest, UnSerializeWithWhitespace)
         "num" : 100
     }
     )";
-    EXPECT_TRUE(cfl::JsonUtil::UnSerialize(json, str));
+    EXPECT_TRUE(cpp_toolkit::JsonUtil::UnSerialize(json, str));
     EXPECT_EQ(json["key"].asString(), "value");
     EXPECT_EQ(json["num"].asInt(), 100);
 }
@@ -100,7 +100,7 @@ TEST(JsonUtilTest, UnSerializeSpecialCharacters)
 {
     Json::Value json;
     std::string_view str = R"({"text":"line1\nline2\ttab"})";
-    EXPECT_TRUE(cfl::JsonUtil::UnSerialize(json, str));
+    EXPECT_TRUE(cpp_toolkit::JsonUtil::UnSerialize(json, str));
     EXPECT_EQ(json["text"].asString(), "line1\nline2\ttab");
 }
 
@@ -108,7 +108,7 @@ TEST(JsonUtilTest, UnSerializeUnicode)
 {
     Json::Value json;
     std::string_view str = R"({"name":"你好"})";
-    EXPECT_TRUE(cfl::JsonUtil::UnSerialize(json, str));
+    EXPECT_TRUE(cpp_toolkit::JsonUtil::UnSerialize(json, str));
     // jsoncpp 解析 unicode 转义为 UTF-8
     EXPECT_FALSE(json["name"].asString().empty());
 }
@@ -119,13 +119,13 @@ TEST(JsonUtilTest, UnSerializeUnicode)
 TEST(JsonUtilTest, UnSerializeInvalidEmpty)
 {
     Json::Value json;
-    EXPECT_FALSE(cfl::JsonUtil::UnSerialize(json, ""));
+    EXPECT_FALSE(cpp_toolkit::JsonUtil::UnSerialize(json, ""));
 }
 
 TEST(JsonUtilTest, UnSerializeInvalidMissingBrace)
 {
     Json::Value json;
-    EXPECT_FALSE(cfl::JsonUtil::UnSerialize(json, R"({"key":"value")"));
+    EXPECT_FALSE(cpp_toolkit::JsonUtil::UnSerialize(json, R"({"key":"value")"));
 }
 
 TEST(JsonUtilTest, UnSerializeInvalidTrailingComma)
@@ -133,7 +133,7 @@ TEST(JsonUtilTest, UnSerializeInvalidTrailingComma)
     Json::Value json;
     // jsoncpp 可能容忍尾逗号，这里测试行为一致性
     // 如果 jsoncpp 不容忍，应返回 false
-    bool result = cfl::JsonUtil::UnSerialize(json, R"({"key":"value",})");
+    bool result = cpp_toolkit::JsonUtil::UnSerialize(json, R"({"key":"value",})");
     // 无论成功或失败，行为应一致（不崩溃）
     (void)result;
 }
@@ -141,13 +141,13 @@ TEST(JsonUtilTest, UnSerializeInvalidTrailingComma)
 TEST(JsonUtilTest, UnSerializeInvalidGarbage)
 {
     Json::Value json;
-    EXPECT_FALSE(cfl::JsonUtil::UnSerialize(json, "not json at all"));
+    EXPECT_FALSE(cpp_toolkit::JsonUtil::UnSerialize(json, "not json at all"));
 }
 
 TEST(JsonUtilTest, UnSerializeInvalidPartial)
 {
     Json::Value json;
-    EXPECT_FALSE(cfl::JsonUtil::UnSerialize(json, R"({"key":)"));
+    EXPECT_FALSE(cpp_toolkit::JsonUtil::UnSerialize(json, R"({"key":)"));
 }
 
 // ============================================================
@@ -160,7 +160,7 @@ TEST(JsonUtilTest, SerializeCompactObject)
     json["value"] = 42;
 
     std::string str;
-    EXPECT_TRUE(cfl::JsonUtil::SerializeCompact(json, str));
+    EXPECT_TRUE(cpp_toolkit::JsonUtil::SerializeCompact(json, str));
     EXPECT_FALSE(str.empty());
 
     // FastWriter 在末尾添加 \n，去掉后不应有其他换行
@@ -172,7 +172,7 @@ TEST(JsonUtilTest, SerializeCompactObject)
 
     // 验证内容可被重新解析
     Json::Value reparsed;
-    EXPECT_TRUE(cfl::JsonUtil::UnSerialize(reparsed, str));
+    EXPECT_TRUE(cpp_toolkit::JsonUtil::UnSerialize(reparsed, str));
     EXPECT_EQ(reparsed["name"].asString(), "test");
     EXPECT_EQ(reparsed["value"].asInt(), 42);
 }
@@ -185,11 +185,11 @@ TEST(JsonUtilTest, SerializeCompactArray)
     json.append(true);
 
     std::string str;
-    EXPECT_TRUE(cfl::JsonUtil::SerializeCompact(json, str));
+    EXPECT_TRUE(cpp_toolkit::JsonUtil::SerializeCompact(json, str));
     EXPECT_FALSE(str.empty());
 
     Json::Value reparsed;
-    EXPECT_TRUE(cfl::JsonUtil::UnSerialize(reparsed, str));
+    EXPECT_TRUE(cpp_toolkit::JsonUtil::UnSerialize(reparsed, str));
     EXPECT_EQ(reparsed.size(), 3u);
     EXPECT_EQ(reparsed[0].asInt(), 1);
     EXPECT_EQ(reparsed[1].asString(), "two");
@@ -200,7 +200,7 @@ TEST(JsonUtilTest, SerializeCompactEmptyObject)
 {
     Json::Value json(Json::objectValue);
     std::string str;
-    EXPECT_TRUE(cfl::JsonUtil::SerializeCompact(json, str));
+    EXPECT_TRUE(cpp_toolkit::JsonUtil::SerializeCompact(json, str));
     // 紧凑格式可能包含尾部换行，去掉后比较
     EXPECT_TRUE(str.find("{}") != std::string::npos);
 }
@@ -209,7 +209,7 @@ TEST(JsonUtilTest, SerializeCompactEmptyArray)
 {
     Json::Value json(Json::arrayValue);
     std::string str;
-    EXPECT_TRUE(cfl::JsonUtil::SerializeCompact(json, str));
+    EXPECT_TRUE(cpp_toolkit::JsonUtil::SerializeCompact(json, str));
     EXPECT_TRUE(str.find("[]") != std::string::npos);
 }
 
@@ -221,10 +221,10 @@ TEST(JsonUtilTest, SerializeCompactNested)
     json["user"]["scores"].append(87);
 
     std::string str;
-    EXPECT_TRUE(cfl::JsonUtil::SerializeCompact(json, str));
+    EXPECT_TRUE(cpp_toolkit::JsonUtil::SerializeCompact(json, str));
 
     Json::Value reparsed;
-    EXPECT_TRUE(cfl::JsonUtil::UnSerialize(reparsed, str));
+    EXPECT_TRUE(cpp_toolkit::JsonUtil::UnSerialize(reparsed, str));
     EXPECT_EQ(reparsed["user"]["name"].asString(), "alice");
     EXPECT_EQ(reparsed["user"]["scores"].size(), 2u);
     EXPECT_EQ(reparsed["user"]["scores"][0].asInt(), 95);
@@ -236,10 +236,10 @@ TEST(JsonUtilTest, SerializeCompactSpecialChars)
     json["text"] = "line1\nline2\ttab\"quote";
 
     std::string str;
-    EXPECT_TRUE(cfl::JsonUtil::SerializeCompact(json, str));
+    EXPECT_TRUE(cpp_toolkit::JsonUtil::SerializeCompact(json, str));
 
     Json::Value reparsed;
-    EXPECT_TRUE(cfl::JsonUtil::UnSerialize(reparsed, str));
+    EXPECT_TRUE(cpp_toolkit::JsonUtil::UnSerialize(reparsed, str));
     EXPECT_EQ(reparsed["text"].asString(), "line1\nline2\ttab\"quote");
 }
 
@@ -252,10 +252,10 @@ TEST(JsonUtilTest, SerializeCompactNumericTypes)
     json["null_val"] = Json::nullValue;
 
     std::string str;
-    EXPECT_TRUE(cfl::JsonUtil::SerializeCompact(json, str));
+    EXPECT_TRUE(cpp_toolkit::JsonUtil::SerializeCompact(json, str));
 
     Json::Value reparsed;
-    EXPECT_TRUE(cfl::JsonUtil::UnSerialize(reparsed, str));
+    EXPECT_TRUE(cpp_toolkit::JsonUtil::UnSerialize(reparsed, str));
     EXPECT_EQ(reparsed["int_val"].asInt(), 42);
     EXPECT_DOUBLE_EQ(reparsed["double_val"].asDouble(), 3.14);
     EXPECT_TRUE(reparsed["bool_val"].asBool());
@@ -272,7 +272,7 @@ TEST(JsonUtilTest, SerializePrettyObject)
     json["value"] = 42;
 
     std::string str;
-    EXPECT_TRUE(cfl::JsonUtil::SerializePretty(json, str));
+    EXPECT_TRUE(cpp_toolkit::JsonUtil::SerializePretty(json, str));
     EXPECT_FALSE(str.empty());
 
     // 应包含换行和缩进
@@ -281,7 +281,7 @@ TEST(JsonUtilTest, SerializePrettyObject)
 
     // 验证内容可被重新解析
     Json::Value reparsed;
-    EXPECT_TRUE(cfl::JsonUtil::UnSerialize(reparsed, str));
+    EXPECT_TRUE(cpp_toolkit::JsonUtil::UnSerialize(reparsed, str));
     EXPECT_EQ(reparsed["name"].asString(), "test");
     EXPECT_EQ(reparsed["value"].asInt(), 42);
 }
@@ -293,10 +293,10 @@ TEST(JsonUtilTest, SerializePrettyArray)
     json.append("two");
 
     std::string str;
-    EXPECT_TRUE(cfl::JsonUtil::SerializePretty(json, str));
+    EXPECT_TRUE(cpp_toolkit::JsonUtil::SerializePretty(json, str));
 
     Json::Value reparsed;
-    EXPECT_TRUE(cfl::JsonUtil::UnSerialize(reparsed, str));
+    EXPECT_TRUE(cpp_toolkit::JsonUtil::UnSerialize(reparsed, str));
     EXPECT_EQ(reparsed.size(), 2u);
     EXPECT_EQ(reparsed[0].asInt(), 1);
     EXPECT_EQ(reparsed[1].asString(), "two");
@@ -306,7 +306,7 @@ TEST(JsonUtilTest, SerializePrettyEmptyObject)
 {
     Json::Value json(Json::objectValue);
     std::string str;
-    EXPECT_TRUE(cfl::JsonUtil::SerializePretty(json, str));
+    EXPECT_TRUE(cpp_toolkit::JsonUtil::SerializePretty(json, str));
     // 空对象格式化输出应包含 "{}"
     EXPECT_TRUE(str.find("{}") != std::string::npos);
 }
@@ -315,7 +315,7 @@ TEST(JsonUtilTest, SerializePrettyEmptyArray)
 {
     Json::Value json(Json::arrayValue);
     std::string str;
-    EXPECT_TRUE(cfl::JsonUtil::SerializePretty(json, str));
+    EXPECT_TRUE(cpp_toolkit::JsonUtil::SerializePretty(json, str));
     EXPECT_TRUE(str.find("[]") != std::string::npos);
 }
 
@@ -327,10 +327,10 @@ TEST(JsonUtilTest, SerializePrettyNested)
     json["user"]["address"]["zip"] = "100000";
 
     std::string str;
-    EXPECT_TRUE(cfl::JsonUtil::SerializePretty(json, str));
+    EXPECT_TRUE(cpp_toolkit::JsonUtil::SerializePretty(json, str));
 
     Json::Value reparsed;
-    EXPECT_TRUE(cfl::JsonUtil::UnSerialize(reparsed, str));
+    EXPECT_TRUE(cpp_toolkit::JsonUtil::UnSerialize(reparsed, str));
     EXPECT_EQ(reparsed["user"]["name"].asString(), "alice");
     EXPECT_EQ(reparsed["user"]["address"]["city"].asString(), "beijing");
     EXPECT_EQ(reparsed["user"]["address"]["zip"].asString(), "100000");
@@ -342,7 +342,7 @@ TEST(JsonUtilTest, SerializePrettyIndentation)
     json["key"] = "value";
 
     std::string str;
-    EXPECT_TRUE(cfl::JsonUtil::SerializePretty(json, str));
+    EXPECT_TRUE(cpp_toolkit::JsonUtil::SerializePretty(json, str));
 
     // 验证使用 2 空格缩进
     EXPECT_NE(str.find("\n  \""), std::string::npos);
@@ -366,10 +366,10 @@ TEST(JsonUtilTest, RoundTripCompact)
     original["nested"]["b"] = 2;
 
     std::string serialized;
-    EXPECT_TRUE(cfl::JsonUtil::SerializeCompact(original, serialized));
+    EXPECT_TRUE(cpp_toolkit::JsonUtil::SerializeCompact(original, serialized));
 
     Json::Value restored;
-    EXPECT_TRUE(cfl::JsonUtil::UnSerialize(restored, serialized));
+    EXPECT_TRUE(cpp_toolkit::JsonUtil::UnSerialize(restored, serialized));
 
     EXPECT_EQ(restored["string"].asString(), "hello world");
     EXPECT_EQ(restored["integer"].asInt(), 12345);
@@ -393,10 +393,10 @@ TEST(JsonUtilTest, RoundTripPretty)
     original["flag"] = true;
 
     std::string serialized;
-    EXPECT_TRUE(cfl::JsonUtil::SerializePretty(original, serialized));
+    EXPECT_TRUE(cpp_toolkit::JsonUtil::SerializePretty(original, serialized));
 
     Json::Value restored;
-    EXPECT_TRUE(cfl::JsonUtil::UnSerialize(restored, serialized));
+    EXPECT_TRUE(cpp_toolkit::JsonUtil::UnSerialize(restored, serialized));
 
     EXPECT_EQ(restored["name"].asString(), "test");
     EXPECT_EQ(restored["items"].size(), 2u);
@@ -412,17 +412,17 @@ TEST(JsonUtilTest, RoundTripCompactToPretty)
     original["num"] = 42;
 
     std::string compact;
-    EXPECT_TRUE(cfl::JsonUtil::SerializeCompact(original, compact));
+    EXPECT_TRUE(cpp_toolkit::JsonUtil::SerializeCompact(original, compact));
 
     Json::Value intermediate;
-    EXPECT_TRUE(cfl::JsonUtil::UnSerialize(intermediate, compact));
+    EXPECT_TRUE(cpp_toolkit::JsonUtil::UnSerialize(intermediate, compact));
 
     std::string pretty;
-    EXPECT_TRUE(cfl::JsonUtil::SerializePretty(intermediate, pretty));
+    EXPECT_TRUE(cpp_toolkit::JsonUtil::SerializePretty(intermediate, pretty));
 
     // 最终解析应与原始一致
     Json::Value final;
-    EXPECT_TRUE(cfl::JsonUtil::UnSerialize(final, pretty));
+    EXPECT_TRUE(cpp_toolkit::JsonUtil::UnSerialize(final, pretty));
     EXPECT_EQ(final["key"].asString(), "value");
     EXPECT_EQ(final["num"].asInt(), 42);
 }
@@ -440,8 +440,8 @@ TEST(JsonUtilTest, CompactShorterThanPretty)
 
     std::string compact;
     std::string pretty;
-    EXPECT_TRUE(cfl::JsonUtil::SerializeCompact(json, compact));
-    EXPECT_TRUE(cfl::JsonUtil::SerializePretty(json, pretty));
+    EXPECT_TRUE(cpp_toolkit::JsonUtil::SerializeCompact(json, compact));
+    EXPECT_TRUE(cpp_toolkit::JsonUtil::SerializePretty(json, pretty));
 
     // 紧凑格式应比格式化短
     EXPECT_LT(compact.size(), pretty.size());
@@ -453,7 +453,7 @@ TEST(JsonUtilTest, CompactNoNewlines)
     json["key"] = "value";
 
     std::string compact;
-    EXPECT_TRUE(cfl::JsonUtil::SerializeCompact(json, compact));
+    EXPECT_TRUE(cpp_toolkit::JsonUtil::SerializeCompact(json, compact));
 
     // 紧凑格式不应包含换行符（FastWriter 会在末尾加 \n）
     // 去掉末尾换行后应无换行
@@ -469,7 +469,7 @@ TEST(JsonUtilTest, PrettyHasNewlines)
     json["key"] = "value";
 
     std::string pretty;
-    EXPECT_TRUE(cfl::JsonUtil::SerializePretty(json, pretty));
+    EXPECT_TRUE(cpp_toolkit::JsonUtil::SerializePretty(json, pretty));
 
     // 格式化输出应包含换行
     EXPECT_NE(pretty.find('\n'), std::string::npos);
@@ -489,10 +489,10 @@ TEST(JsonUtilTest, DeepNestedObject)
     (*current)["final"] = true;
 
     std::string str;
-    EXPECT_TRUE(cfl::JsonUtil::SerializeCompact(json, str));
+    EXPECT_TRUE(cpp_toolkit::JsonUtil::SerializeCompact(json, str));
 
     Json::Value reparsed;
-    EXPECT_TRUE(cfl::JsonUtil::UnSerialize(reparsed, str));
+    EXPECT_TRUE(cpp_toolkit::JsonUtil::UnSerialize(reparsed, str));
 
     // 验证嵌套深度
     Json::Value* check = &reparsed;
@@ -512,10 +512,10 @@ TEST(JsonUtilTest, LargeArray)
     }
 
     std::string str;
-    EXPECT_TRUE(cfl::JsonUtil::SerializeCompact(json, str));
+    EXPECT_TRUE(cpp_toolkit::JsonUtil::SerializeCompact(json, str));
 
     Json::Value reparsed;
-    EXPECT_TRUE(cfl::JsonUtil::UnSerialize(reparsed, str));
+    EXPECT_TRUE(cpp_toolkit::JsonUtil::UnSerialize(reparsed, str));
     EXPECT_EQ(reparsed.size(), static_cast<Json::UInt>(count));
     EXPECT_EQ(reparsed[0].asInt(), 0);
     EXPECT_EQ(reparsed[count - 1].asInt(), count - 1);
@@ -527,10 +527,10 @@ TEST(JsonUtilTest, EmptyStringValue)
     json["empty"] = "";
 
     std::string str;
-    EXPECT_TRUE(cfl::JsonUtil::SerializeCompact(json, str));
+    EXPECT_TRUE(cpp_toolkit::JsonUtil::SerializeCompact(json, str));
 
     Json::Value reparsed;
-    EXPECT_TRUE(cfl::JsonUtil::UnSerialize(reparsed, str));
+    EXPECT_TRUE(cpp_toolkit::JsonUtil::UnSerialize(reparsed, str));
     EXPECT_EQ(reparsed["empty"].asString(), "");
 }
 
@@ -541,10 +541,10 @@ TEST(JsonUtilTest, LongStringValue)
     json["data"] = long_str;
 
     std::string str;
-    EXPECT_TRUE(cfl::JsonUtil::SerializeCompact(json, str));
+    EXPECT_TRUE(cpp_toolkit::JsonUtil::SerializeCompact(json, str));
 
     Json::Value reparsed;
-    EXPECT_TRUE(cfl::JsonUtil::UnSerialize(reparsed, str));
+    EXPECT_TRUE(cpp_toolkit::JsonUtil::UnSerialize(reparsed, str));
     EXPECT_EQ(reparsed["data"].asString(), long_str);
 }
 
@@ -557,10 +557,10 @@ TEST(JsonUtilTest, IntegerBoundaryValues)
     json["large"] = static_cast<Json::Int64>(9223372036854775807LL);  // INT64_MAX
 
     std::string str;
-    EXPECT_TRUE(cfl::JsonUtil::SerializeCompact(json, str));
+    EXPECT_TRUE(cpp_toolkit::JsonUtil::SerializeCompact(json, str));
 
     Json::Value reparsed;
-    EXPECT_TRUE(cfl::JsonUtil::UnSerialize(reparsed, str));
+    EXPECT_TRUE(cpp_toolkit::JsonUtil::UnSerialize(reparsed, str));
     EXPECT_EQ(reparsed["zero"].asInt(), 0);
     EXPECT_EQ(reparsed["positive"].asInt(), 2147483647);
     EXPECT_EQ(reparsed["negative"].asInt(), -2147483647);
@@ -574,10 +574,10 @@ TEST(JsonUtilTest, DoublePrecision)
     json["large"] = 1e18;
 
     std::string str;
-    EXPECT_TRUE(cfl::JsonUtil::SerializeCompact(json, str));
+    EXPECT_TRUE(cpp_toolkit::JsonUtil::SerializeCompact(json, str));
 
     Json::Value reparsed;
-    EXPECT_TRUE(cfl::JsonUtil::UnSerialize(reparsed, str));
+    EXPECT_TRUE(cpp_toolkit::JsonUtil::UnSerialize(reparsed, str));
     EXPECT_DOUBLE_EQ(reparsed["pi"].asDouble(), 3.141592653589793);
     EXPECT_DOUBLE_EQ(reparsed["small"].asDouble(), 0.000001);
     EXPECT_DOUBLE_EQ(reparsed["large"].asDouble(), 1e18);
@@ -591,10 +591,10 @@ TEST(JsonUtilTest, BooleanAndNullMixed)
     json["n"] = Json::nullValue;
 
     std::string str;
-    EXPECT_TRUE(cfl::JsonUtil::SerializeCompact(json, str));
+    EXPECT_TRUE(cpp_toolkit::JsonUtil::SerializeCompact(json, str));
 
     Json::Value reparsed;
-    EXPECT_TRUE(cfl::JsonUtil::UnSerialize(reparsed, str));
+    EXPECT_TRUE(cpp_toolkit::JsonUtil::UnSerialize(reparsed, str));
     EXPECT_TRUE(reparsed["t"].asBool());
     EXPECT_FALSE(reparsed["f"].asBool());
     EXPECT_TRUE(reparsed["n"].isNull());

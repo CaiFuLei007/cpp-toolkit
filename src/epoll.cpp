@@ -3,7 +3,7 @@
 
 #include <unistd.h>
 
-namespace cfl
+namespace cpp_toolkit
 {
 int Epoll::CreateEpoll()
 {
@@ -47,4 +47,4 @@ int Epoll::Wait(std::vector<struct epoll_event>& events, int timeout)
     return epoll_wait(epoll_fd_, events.data(), events.size(), timeout);
 }
 
-}   // namespace cfl
+}   // namespace cpp_toolkit

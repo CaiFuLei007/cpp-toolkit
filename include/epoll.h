@@ -8,7 +8,7 @@
 #include <vector>
 #include <sys/epoll.h>
 
-namespace cfl {
+namespace cpp_toolkit {
 
 class Epoll {
 private:
@@ -29,4 +29,4 @@ public:
 
 };
 
-} // namespace cfl
+} // namespace cpp_toolkit

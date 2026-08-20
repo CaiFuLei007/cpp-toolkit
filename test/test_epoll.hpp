@@ -33,7 +33,7 @@ static void SetNonBlocking(int fd)
 // ============================================================
 TEST(EpollTest, Construct)
 {
-    cfl::Epoll epoll;
+    cpp_toolkit::Epoll epoll;
     // 构造不应崩溃，内部 epoll_fd_ 应为有效 fd
     SUCCEED();
 }
@@ -41,7 +41,7 @@ TEST(EpollTest, Construct)
 TEST(EpollTest, Destruct)
 {
     {
-        cfl::Epoll epoll;
+        cpp_toolkit::Epoll epoll;
     }
     // 析构不应崩溃
     SUCCEED();
@@ -54,7 +54,7 @@ TEST(EpollTest, Destruct)
 // ============================================================
 TEST(EpollTest, AddFdRead)
 {
-    cfl::Epoll epoll;
+    cpp_toolkit::Epoll epoll;
     auto [fd0, fd1] = MakeSocketPair();
     ASSERT_NE(fd0, -1);
     ASSERT_NE(fd1, -1);
@@ -69,7 +69,7 @@ TEST(EpollTest, AddFdRead)
 
 TEST(EpollTest, AddFdWrite)
 {
-    cfl::Epoll epoll;
+    cpp_toolkit::Epoll epoll;
     auto [fd0, fd1] = MakeSocketPair();
     ASSERT_NE(fd0, -1);
     ASSERT_NE(fd1, -1);
@@ -82,7 +82,7 @@ TEST(EpollTest, AddFdWrite)
 
 TEST(EpollTest, AddFdReadWrite)
 {
-    cfl::Epoll epoll;
+    cpp_toolkit::Epoll epoll;
     auto [fd0, fd1] = MakeSocketPair();
     ASSERT_NE(fd0, -1);
     ASSERT_NE(fd1, -1);
@@ -96,7 +96,7 @@ TEST(EpollTest, AddFdReadWrite)
 
 TEST(EpollTest, AddFdMultiple)
 {
-    cfl::Epoll epoll;
+    cpp_toolkit::Epoll epoll;
     auto [fd0, fd1] = MakeSocketPair();
     auto [fd2, fd3] = MakeSocketPair();
     ASSERT_NE(fd0, -1);
@@ -114,7 +114,7 @@ TEST(EpollTest, AddFdMultiple)
 
 TEST(EpollTest, AddFdInvalidFd)
 {
-    cfl::Epoll epoll;
+    cpp_toolkit::Epoll epoll;
 
     // 添加无效 fd，epoll_ctl 失败返回 -1，转为 bool 是 true
     EXPECT_TRUE(epoll.AddFd(-1, EPOLLIN));
@@ -122,7 +122,7 @@ TEST(EpollTest, AddFdInvalidFd)
 
 TEST(EpollTest, AddFdDuplicateFd)
 {
-    cfl::Epoll epoll;
+    cpp_toolkit::Epoll epoll;
     auto [fd0, fd1] = MakeSocketPair();
     ASSERT_NE(fd0, -1);
 
@@ -141,7 +141,7 @@ TEST(EpollTest, AddFdDuplicateFd)
 // ============================================================
 TEST(EpollTest, ModFdChangeEvents)
 {
-    cfl::Epoll epoll;
+    cpp_toolkit::Epoll epoll;
     auto [fd0, fd1] = MakeSocketPair();
     ASSERT_NE(fd0, -1);
 
@@ -157,7 +157,7 @@ TEST(EpollTest, ModFdChangeEvents)
 
 TEST(EpollTest, ModFdToReadWrite)
 {
-    cfl::Epoll epoll;
+    cpp_toolkit::Epoll epoll;
     auto [fd0, fd1] = MakeSocketPair();
     ASSERT_NE(fd0, -1);
 
@@ -172,7 +172,7 @@ TEST(EpollTest, ModFdToReadWrite)
 
 TEST(EpollTest, ModFdWithoutAdd)
 {
-    cfl::Epoll epoll;
+    cpp_toolkit::Epoll epoll;
     auto [fd0, fd1] = MakeSocketPair();
     ASSERT_NE(fd0, -1);
 
@@ -185,7 +185,7 @@ TEST(EpollTest, ModFdWithoutAdd)
 
 TEST(EpollTest, ModFdInvalidFd)
 {
-    cfl::Epoll epoll;
+    cpp_toolkit::Epoll epoll;
 
     // 修改无效 fd 应该失败（返回 true）
     EXPECT_TRUE(epoll.ModFd(-1, EPOLLIN));
@@ -196,7 +196,7 @@ TEST(EpollTest, ModFdInvalidFd)
 // ============================================================
 TEST(EpollTest, DelFdAfterAdd)
 {
-    cfl::Epoll epoll;
+    cpp_toolkit::Epoll epoll;
     auto [fd0, fd1] = MakeSocketPair();
     ASSERT_NE(fd0, -1);
 
@@ -210,7 +210,7 @@ TEST(EpollTest, DelFdAfterAdd)
 
 TEST(EpollTest, DelFdWithoutAdd)
 {
-    cfl::Epoll epoll;
+    cpp_toolkit::Epoll epoll;
     auto [fd0, fd1] = MakeSocketPair();
     ASSERT_NE(fd0, -1);
 
@@ -223,7 +223,7 @@ TEST(EpollTest, DelFdWithoutAdd)
 
 TEST(EpollTest, DelFdInvalidFd)
 {
-    cfl::Epoll epoll;
+    cpp_toolkit::Epoll epoll;
 
     // 删除无效 fd 应该失败（返回 true）
     EXPECT_TRUE(epoll.DelFd(-1));
@@ -231,7 +231,7 @@ TEST(EpollTest, DelFdInvalidFd)
 
 TEST(EpollTest, DelFdTwice)
 {
-    cfl::Epoll epoll;
+    cpp_toolkit::Epoll epoll;
     auto [fd0, fd1] = MakeSocketPair();
     ASSERT_NE(fd0, -1);
 
@@ -247,7 +247,7 @@ TEST(EpollTest, DelFdTwice)
 
 TEST(EpollTest, AddAfterDel)
 {
-    cfl::Epoll epoll;
+    cpp_toolkit::Epoll epoll;
     auto [fd0, fd1] = MakeSocketPair();
     ASSERT_NE(fd0, -1);
 
@@ -265,7 +265,7 @@ TEST(EpollTest, AddAfterDel)
 // ============================================================
 TEST(EpollTest, WaitReadReady)
 {
-    cfl::Epoll epoll;
+    cpp_toolkit::Epoll epoll;
     auto [fd0, fd1] = MakeSocketPair();
     ASSERT_NE(fd0, -1);
     ASSERT_NE(fd1, -1);
@@ -291,7 +291,7 @@ TEST(EpollTest, WaitReadReady)
 
 TEST(EpollTest, WaitWriteReady)
 {
-    cfl::Epoll epoll;
+    cpp_toolkit::Epoll epoll;
     auto [fd0, fd1] = MakeSocketPair();
     ASSERT_NE(fd0, -1);
     ASSERT_NE(fd1, -1);
@@ -311,7 +311,7 @@ TEST(EpollTest, WaitWriteReady)
 
 TEST(EpollTest, WaitTimeout)
 {
-    cfl::Epoll epoll;
+    cpp_toolkit::Epoll epoll;
     auto [fd0, fd1] = MakeSocketPair();
     ASSERT_NE(fd0, -1);
     ASSERT_NE(fd1, -1);
@@ -331,7 +331,7 @@ TEST(EpollTest, WaitTimeout)
 
 TEST(EpollTest, WaitMultipleFds)
 {
-    cfl::Epoll epoll;
+    cpp_toolkit::Epoll epoll;
     auto [fd0, fd1] = MakeSocketPair();
     auto [fd2, fd3] = MakeSocketPair();
     ASSERT_NE(fd0, -1);
@@ -368,7 +368,7 @@ TEST(EpollTest, WaitMultipleFds)
 
 TEST(EpollTest, WaitAfterDel)
 {
-    cfl::Epoll epoll;
+    cpp_toolkit::Epoll epoll;
     auto [fd0, fd1] = MakeSocketPair();
     ASSERT_NE(fd0, -1);
     ASSERT_NE(fd1, -1);
@@ -393,7 +393,7 @@ TEST(EpollTest, WaitAfterDel)
 
 TEST(EpollTest, WaitEmptyEvents)
 {
-    cfl::Epoll epoll;
+    cpp_toolkit::Epoll epoll;
 
     // 没有添加任何 fd，Wait 应超时返回 0
     std::vector<struct epoll_event> events(10);
@@ -403,7 +403,7 @@ TEST(EpollTest, WaitEmptyEvents)
 
 TEST(EpollTest, WaitZeroTimeout)
 {
-    cfl::Epoll epoll;
+    cpp_toolkit::Epoll epoll;
     auto [fd0, fd1] = MakeSocketPair();
     ASSERT_NE(fd0, -1);
     ASSERT_NE(fd1, -1);
@@ -423,7 +423,7 @@ TEST(EpollTest, WaitZeroTimeout)
 
 TEST(EpollTest, WaitZeroTimeoutWithData)
 {
-    cfl::Epoll epoll;
+    cpp_toolkit::Epoll epoll;
     auto [fd0, fd1] = MakeSocketPair();
     ASSERT_NE(fd0, -1);
     ASSERT_NE(fd1, -1);
@@ -449,7 +449,7 @@ TEST(EpollTest, WaitZeroTimeoutWithData)
 
 TEST(EpollTest, WaitSmallEventsBuffer)
 {
-    cfl::Epoll epoll;
+    cpp_toolkit::Epoll epoll;
     auto [fd0, fd1] = MakeSocketPair();
     auto [fd2, fd3] = MakeSocketPair();
     ASSERT_NE(fd0, -1);
@@ -483,7 +483,7 @@ TEST(EpollTest, WaitSmallEventsBuffer)
 // ============================================================
 TEST(EpollTest, AddModDelFlow)
 {
-    cfl::Epoll epoll;
+    cpp_toolkit::Epoll epoll;
     auto [fd0, fd1] = MakeSocketPair();
     ASSERT_NE(fd0, -1);
     ASSERT_NE(fd1, -1);
@@ -514,8 +514,8 @@ TEST(EpollTest, AddModDelFlow)
 TEST(EpollTest, MultipleInstances)
 {
     // 两个独立的 Epoll 实例
-    cfl::Epoll epoll1;
-    cfl::Epoll epoll2;
+    cpp_toolkit::Epoll epoll1;
+    cpp_toolkit::Epoll epoll2;
 
     auto [fd0, fd1] = MakeSocketPair();
     auto [fd2, fd3] = MakeSocketPair();

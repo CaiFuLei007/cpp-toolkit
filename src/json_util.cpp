@@ -1,7 +1,7 @@
 
 #include "json_util.h"
 
-namespace cfl
+namespace cpp_toolkit
 {
 bool JsonUtil::UnSerialize(Json::Value& json, std::string_view str)
 {
@@ -26,4 +26,4 @@ bool JsonUtil::SerializePretty(const Json::Value& json, std::string& str)
     return true;
 }
 
-} // namespace cfl
+} // namespace cpp_toolkit

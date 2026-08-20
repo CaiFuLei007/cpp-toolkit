@@ -9,7 +9,7 @@
 #include <string_view>
 #include <jsoncpp/json/json.h>
 
-namespace cfl
+namespace cpp_toolkit
 {
 class JsonUtil
 {
@@ -19,4 +19,4 @@ public:
     static bool SerializePretty(const Json::Value& json, std::string& str);
 };
 
-} // namespace cfl
+} // namespace cpp_toolkit

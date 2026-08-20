@@ -49,7 +49,7 @@ static uint16_t GetAvailablePort()
 // ============================================================
 TEST(SocketTest, DefaultConstruct)
 {
-    cfl::Socket sock;
+    cpp_toolkit::Socket sock;
     EXPECT_EQ(sock.GetFd(), -1);
 }
 
@@ -61,13 +61,13 @@ TEST(SocketTest, ConstructWithFd)
     int fd = MakeValidFd();
     ASSERT_GE(fd, 0);
 
-    cfl::Socket sock(fd);
+    cpp_toolkit::Socket sock(fd);
     EXPECT_EQ(sock.GetFd(), fd);
 }
 
 TEST(SocketTest, ConstructWithInvalidFd)
 {
-    cfl::Socket sock(-1);
+    cpp_toolkit::Socket sock(-1);
     EXPECT_EQ(sock.GetFd(), -1);
 }
 
@@ -76,7 +76,7 @@ TEST(SocketTest, ConstructWithInvalidFd)
 // ============================================================
 TEST(SocketTest, GetFdDefault)
 {
-    cfl::Socket sock;
+    cpp_toolkit::Socket sock;
     EXPECT_EQ(sock.GetFd(), -1);
 }
 
@@ -85,7 +85,7 @@ TEST(SocketTest, GetFdValid)
     int fd = MakeValidFd();
     ASSERT_GE(fd, 0);
 
-    cfl::Socket sock(fd);
+    cpp_toolkit::Socket sock(fd);
     EXPECT_EQ(sock.GetFd(), fd);
 }
 
@@ -97,7 +97,7 @@ TEST(SocketTest, SetNonBlock)
     int fd = MakeValidFd();
     ASSERT_GE(fd, 0);
 
-    cfl::Socket sock(fd);
+    cpp_toolkit::Socket sock(fd);
     int ret = sock.SetNonBlock();
     EXPECT_EQ(ret, 0);
 
@@ -107,7 +107,7 @@ TEST(SocketTest, SetNonBlock)
 
 TEST(SocketTest, SetNonBlockInvalidFd)
 {
-    cfl::Socket sock(-1);
+    cpp_toolkit::Socket sock(-1);
     int ret = sock.SetNonBlock();
     EXPECT_NE(ret, 0);
 }
@@ -120,14 +120,14 @@ TEST(SocketTest, SetReuseAddr)
     int fd = MakeValidFd();
     ASSERT_GE(fd, 0);
 
-    cfl::Socket sock(fd);
+    cpp_toolkit::Socket sock(fd);
     int ret = sock.SetReuseAddr();
     EXPECT_EQ(ret, 0);
 }
 
 TEST(SocketTest, SetReuseAddrInvalidFd)
 {
-    cfl::Socket sock(-1);
+    cpp_toolkit::Socket sock(-1);
     int ret = sock.SetReuseAddr();
     EXPECT_NE(ret, 0);
 }
@@ -140,7 +140,7 @@ TEST(SocketTest, SetReusePort)
     int fd = MakeValidFd();
     ASSERT_GE(fd, 0);
 
-    cfl::Socket sock(fd);
+    cpp_toolkit::Socket sock(fd);
     int ret = sock.SetReusePort();
     // SetReusePort 可能需要 root 权限，这里只验证不崩溃
     // ret == 0 表示成功，ret != 0 可能是权限问题
@@ -149,7 +149,7 @@ TEST(SocketTest, SetReusePort)
 
 TEST(SocketTest, SetReusePortInvalidFd)
 {
-    cfl::Socket sock(-1);
+    cpp_toolkit::Socket sock(-1);
     int ret = sock.SetReusePort();
     EXPECT_NE(ret, 0);
 }
@@ -162,7 +162,7 @@ TEST(SocketTest, BindSuccess)
     int fd = MakeValidFd();
     ASSERT_GE(fd, 0);
 
-    cfl::Socket sock(fd);
+    cpp_toolkit::Socket sock(fd);
     uint16_t port = GetAvailablePort();
     ASSERT_GT(port, 0);
 
@@ -175,7 +175,7 @@ TEST(SocketTest, BindDefaultAddr)
     int fd = MakeValidFd();
     ASSERT_GE(fd, 0);
 
-    cfl::Socket sock(fd);
+    cpp_toolkit::Socket sock(fd);
     uint16_t port = GetAvailablePort();
     ASSERT_GT(port, 0);
 
@@ -185,7 +185,7 @@ TEST(SocketTest, BindDefaultAddr)
 
 TEST(SocketTest, BindInvalidFd)
 {
-    cfl::Socket sock(-1);
+    cpp_toolkit::Socket sock(-1);
     int ret = sock.Bind(12345, "127.0.0.1");
     EXPECT_NE(ret, 0);
 }
@@ -195,7 +195,7 @@ TEST(SocketTest, BindTwiceFailsSecond)
     int fd = MakeValidFd();
     ASSERT_GE(fd, 0);
 
-    cfl::Socket sock(fd);
+    cpp_toolkit::Socket sock(fd);
     uint16_t port = GetAvailablePort();
     ASSERT_GT(port, 0);
 
@@ -212,7 +212,7 @@ TEST(SocketTest, ListenSuccess)
     int fd = MakeValidFd();
     ASSERT_GE(fd, 0);
 
-    cfl::Socket sock(fd);
+    cpp_toolkit::Socket sock(fd);
     uint16_t port = GetAvailablePort();
     ASSERT_GT(port, 0);
 
@@ -226,7 +226,7 @@ TEST(SocketTest, ListenWithoutBind)
     int fd = MakeValidFd();
     ASSERT_GE(fd, 0);
 
-    cfl::Socket sock(fd);
+    cpp_toolkit::Socket sock(fd);
     // Linux 上未 bind 就 listen 可能成功（内核自动绑定随机端口）
     // 这里验证不崩溃，返回值合法即可
     int ret = sock.Listen(5);
@@ -235,7 +235,7 @@ TEST(SocketTest, ListenWithoutBind)
 
 TEST(SocketTest, ListenInvalidFd)
 {
-    cfl::Socket sock(-1);
+    cpp_toolkit::Socket sock(-1);
     int ret = sock.Listen(5);
     EXPECT_NE(ret, 0);
 }
@@ -245,7 +245,7 @@ TEST(SocketTest, ListenInvalidFd)
 // ============================================================
 TEST(SocketTest, ConnectInvalidFd)
 {
-    cfl::Socket sock(-1);
+    cpp_toolkit::Socket sock(-1);
     int ret = sock.Connect(12345, "127.0.0.1");
     EXPECT_NE(ret, 0);
 }
@@ -255,7 +255,7 @@ TEST(SocketTest, ConnectRefused)
     int fd = MakeValidFd();
     ASSERT_GE(fd, 0);
 
-    cfl::Socket sock(fd);
+    cpp_toolkit::Socket sock(fd);
     // 连接到一个未监听的端口，应失败
     int ret = sock.Connect(1, "127.0.0.1");
     EXPECT_NE(ret, 0);
@@ -266,7 +266,7 @@ TEST(SocketTest, ConnectRefused)
 // ============================================================
 TEST(SocketTest, AcceptInvalidFd)
 {
-    cfl::Socket sock(-1);
+    cpp_toolkit::Socket sock(-1);
     int ret = sock.Accept();
     EXPECT_EQ(ret, -1);
 }
@@ -279,7 +279,7 @@ TEST(SocketTest, Close)
     int fd = MakeValidFd();
     ASSERT_GE(fd, 0);
 
-    cfl::Socket sock(fd);
+    cpp_toolkit::Socket sock(fd);
     EXPECT_EQ(sock.GetFd(), fd);
 
     sock.Close();
@@ -290,7 +290,7 @@ TEST(SocketTest, Close)
 
 TEST(SocketTest, CloseInvalidFd)
 {
-    cfl::Socket sock(-1);
+    cpp_toolkit::Socket sock(-1);
     // 关闭无效 fd 不应崩溃
     sock.Close();
 }
@@ -304,7 +304,7 @@ TEST(SocketTest, DestructorClosesFd)
     ASSERT_GE(fd, 0);
 
     {
-        cfl::Socket sock(fd);
+        cpp_toolkit::Socket sock(fd);
         EXPECT_EQ(sock.GetFd(), fd);
     } // 析构
 
@@ -315,7 +315,7 @@ TEST(SocketTest, DestructorClosesFd)
 TEST(SocketTest, DestructorInvalidFd)
 {
     // 析构无效 fd 不应崩溃
-    cfl::Socket sock(-1);
+    cpp_toolkit::Socket sock(-1);
 }
 
 // ============================================================
@@ -323,7 +323,7 @@ TEST(SocketTest, DestructorInvalidFd)
 // ============================================================
 TEST(SocketTest, CreateServerSuccess)
 {
-    cfl::Socket sock;
+    cpp_toolkit::Socket sock;
     uint16_t port = GetAvailablePort();
     ASSERT_GT(port, 0);
 
@@ -334,7 +334,7 @@ TEST(SocketTest, CreateServerSuccess)
 
 TEST(SocketTest, CreateServerDefaultParams)
 {
-    cfl::Socket sock;
+    cpp_toolkit::Socket sock;
     uint16_t port = GetAvailablePort();
     ASSERT_GT(port, 0);
 
@@ -345,14 +345,14 @@ TEST(SocketTest, CreateServerDefaultParams)
 
 TEST(SocketTest, CreateServerTwiceFailsSecond)
 {
-    cfl::Socket sock;
+    cpp_toolkit::Socket sock;
     uint16_t port = GetAvailablePort();
     ASSERT_GT(port, 0);
 
     EXPECT_TRUE(sock.CreateServer(port, "127.0.0.1", 5));
 
     // 创建第二个 server 应失败（同一 socket 不能 bind 两次）
-    cfl::Socket sock2;
+    cpp_toolkit::Socket sock2;
     EXPECT_FALSE(sock2.CreateServer(port, "127.0.0.1", 5));
 }
 
@@ -361,7 +361,7 @@ TEST(SocketTest, CreateServerTwiceFailsSecond)
 // ============================================================
 TEST(SocketTest, CreateClientInvalidAddr)
 {
-    cfl::Socket sock;
+    cpp_toolkit::Socket sock;
     // 连接到不存在的地址应失败
     bool ret = sock.CreateClient(1, "127.0.0.1");
     EXPECT_FALSE(ret);
@@ -372,7 +372,7 @@ TEST(SocketTest, CreateClientInvalidAddr)
 // ============================================================
 TEST(SocketTest, ServerAcceptClient)
 {
-    cfl::Socket server;
+    cpp_toolkit::Socket server;
     uint16_t port = GetAvailablePort();
     ASSERT_GT(port, 0);
 
@@ -382,7 +382,7 @@ TEST(SocketTest, ServerAcceptClient)
     // 在另一个线程中创建 client
     std::thread client_thread([port]() {
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
-        cfl::Socket client;
+        cpp_toolkit::Socket client;
         bool connected = client.CreateClient(port, "127.0.0.1");
         EXPECT_TRUE(connected);
     });
@@ -400,7 +400,7 @@ TEST(SocketTest, ServerAcceptClient)
 
 TEST(SocketTest, ServerAcceptMultipleClients)
 {
-    cfl::Socket server;
+    cpp_toolkit::Socket server;
     uint16_t port = GetAvailablePort();
     ASSERT_GT(port, 0);
 
@@ -412,7 +412,7 @@ TEST(SocketTest, ServerAcceptMultipleClients)
     for (int i = 0; i < num_clients; ++i) {
         client_threads[i] = std::thread([port]() {
             std::this_thread::sleep_for(std::chrono::milliseconds(50));
-            cfl::Socket client;
+            cpp_toolkit::Socket client;
             bool connected = client.CreateClient(port, "127.0.0.1");
             EXPECT_TRUE(connected);
         });
@@ -436,7 +436,7 @@ TEST(SocketTest, ServerAcceptMultipleClients)
 // ============================================================
 TEST(SocketTest, PortZero)
 {
-    cfl::Socket sock;
+    cpp_toolkit::Socket sock;
     // 端口 0 应该可以绑定（系统分配端口）
     bool ret = sock.CreateServer(0, "127.0.0.1", 5);
     EXPECT_TRUE(ret);
@@ -444,7 +444,7 @@ TEST(SocketTest, PortZero)
 
 TEST(SocketTest, LargeBacklog)
 {
-    cfl::Socket sock;
+    cpp_toolkit::Socket sock;
     uint16_t port = GetAvailablePort();
     ASSERT_GT(port, 0);
 

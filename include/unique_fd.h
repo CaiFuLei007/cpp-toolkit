@@ -10,7 +10,7 @@
 #include <unistd.h>
 #include <utility>
 
-namespace cfl
+namespace cpp_toolkit
 {
 
 class UniqueFd
@@ -37,4 +37,4 @@ public:
     void Reset(int fd);
     ~UniqueFd();
 };
-} // namespace cfl
+} // namespace cpp_toolkit

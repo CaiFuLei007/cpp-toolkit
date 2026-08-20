@@ -10,7 +10,7 @@
 #include <stdint.h>
 #include <string_view>
 
-namespace cfl
+namespace cpp_toolkit
 {
 class Socket
 {
@@ -39,7 +39,7 @@ public:
     bool CreateClient(uint16_t port, std::string_view addr);
 };
     
-} // namespace cfl
+} // namespace cpp_toolkit
 
 
 

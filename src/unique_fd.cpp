@@ -1,7 +1,7 @@
 
 #include "unique_fd.h"
 
-namespace cfl
+namespace cpp_toolkit
 {
 
 UniqueFd::UniqueFd(int fd)
@@ -57,4 +57,4 @@ UniqueFd::~UniqueFd()
     }
 }
 
-} // namespace cfl
+} // namespace cpp_toolkit
