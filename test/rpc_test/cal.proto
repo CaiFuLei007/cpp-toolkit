@@ -1,0 +1,22 @@
+syntax = "proto2";
+
+package cal;
+
+// brpc 使用 google::protobuf::Service 通用接口, 需开启 generic services 才会生成 Service / Stub
+option cc_generic_services = true;
+
+// 加法请求
+message AddRequest {
+    required int32 a = 1;
+    required int32 b = 2;
+}
+
+// 加法响应
+message AddResponse {
+    required int32 result = 1;
+}
+
+// 计算服务
+service CalService {
+    rpc Add(AddRequest) returns (AddResponse);
+}
