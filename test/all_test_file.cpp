@@ -1,5 +1,6 @@
 #include <gtest/gtest.h>
-#include "test_logger.hpp"
+// #include "test_logger.hpp"
+#include "test_fdfs.hpp"
 
 // file 模式: initLogger(g_log_file, ...),日志直接输出到文件
 namespace cpp_toolkit_test {

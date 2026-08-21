@@ -5,6 +5,7 @@
 // #include "test_json_util.hpp"
 // #include "test_timerwheel.hpp"
 #include "test_logger.hpp"
+#include "test_fdfs.hpp"
 
 // stdout 模式: initLogger("stdout", ...),stdout 被重定向到 g_log_file
 namespace cpp_toolkit_test {

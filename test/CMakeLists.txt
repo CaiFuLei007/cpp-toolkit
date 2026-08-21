@@ -143,6 +143,12 @@ find_package(GTest REQUIRED)
 find_package(jsoncpp REQUIRED)
 find_package(spdlog REQUIRED)
 
+# FastDFS 客户端库 (fdfs.cpp 依赖), 位于 /usr/lib
+set(FDFS_LIBS
+    /usr/lib/libfdfsclient.so
+    /usr/lib/libfastcommon.so
+)
+
 # 链接库  TODO
 target_link_libraries(
     all_test              # 可执行程序（add_executable）或库（add_library）名称
@@ -150,6 +156,7 @@ target_link_libraries(
     GTest::GTest          # 链接 GTest 库（all_test.cpp 自带 main，不链接 GTest::Main）
     spdlog::spdlog        # 链接 spdlog 库
     jsoncpp
+    ${FDFS_LIBS}
 )
 
 target_link_libraries(
@@ -158,4 +165,5 @@ target_link_libraries(
     GTest::GTest
     spdlog::spdlog
     jsoncpp
+    ${FDFS_LIBS}
 )
