@@ -4,31 +4,40 @@
 namespace cpp_toolkit {
 
 std::shared_ptr<spdlog::logger> Logger::_logger = nullptr;
-std::mutex Logger::_mutex;  
 
 Logger::Logger()
 {}
 
-void Logger::initLogger(const std::string& loggerFile , const std::string& loggerName, spdlog::level::level_enum logLevel){
-    if(nullptr == _logger){
-        std::lock_guard<std::mutex> lock(_mutex);
-        if(nullptr == _logger){
-            spdlog::flush_on(logLevel);
-            // 启用异步日志，即将日志信息存放队列中，有后台线程负责写入
-            // 参数1：队列大小，参数2：后台线程数量
-            spdlog::init_thread_pool(32768, 1);
-            if("stdout" == loggerFile){
-                // 创建一个带颜色的输出到控制台的日志器
-                _logger = spdlog::stdout_color_mt(loggerName);
-            }else{
-                // 创建一个文件输出的日志器，日志会被写入到指定的文件中
-                _logger = spdlog::basic_logger_mt<spdlog::async_factory>(loggerName, loggerFile);
-            }
-        }
+void Logger::initLogger(const logger_settings& settings)
+{
+    spdlog::flush_on(settings.logLevel);
 
-        _logger->set_pattern("[%H:%M:%S][%n][%-7l]%v");
-        _logger->set_level(logLevel);
+    if(settings.async) // 异步日志
+    {
+        if("stdout" == settings.loggerFile)
+        {
+            _logger = spdlog::stdout_color_mt<spdlog::async_factory>(settings.loggerName);
+        }   
+        else
+        {
+            _logger = spdlog::basic_logger_mt<spdlog::async_factory>(settings.loggerName, settings.loggerFile);
+        }
+        spdlog::init_thread_pool(settings.queue_size, settings.thread_count);
     }
+    else 
+    {
+        if("stdout" == settings.loggerFile)
+        {
+            _logger = spdlog::stdout_color_mt(settings.loggerName);
+        }
+        else
+        {
+            _logger = spdlog::basic_logger_mt(settings.loggerName, settings.loggerFile);
+        }
+    }
+    
+    _logger->set_pattern(settings.pattern);
+    _logger->set_level(settings.logLevel);
 }
 
 std::shared_ptr<spdlog::logger> Logger::getLogger(){

@@ -18,9 +18,20 @@
 
 namespace cpp_toolkit {
 
+struct logger_settings
+{
+    bool async = true;
+    std::string loggerFile = "stdout";
+    std::string loggerName = "";
+    spdlog::level::level_enum logLevel = spdlog::level::info;
+    std::string pattern = "[%H:%M:%S][%n][%-7l]%v";
+    size_t thread_count = 1;
+    size_t queue_size = 32768;
+};
+
 class Logger{
     public:
-        static void initLogger(const std::string& loggerFile = "stdout", const std::string& loggerName = "", spdlog::level::level_enum logLevel = spdlog::level::info);
+        static void initLogger(const logger_settings& settings);
         static std::shared_ptr<spdlog::logger> getLogger();
     private:
         Logger();
@@ -28,7 +39,6 @@ class Logger{
         Logger& operator=(const Logger&) = delete;
     private:
         static std::shared_ptr<spdlog::logger> _logger;
-        static std::mutex _mutex;
 };
 
 
