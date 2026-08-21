@@ -1,33 +1,61 @@
 // CalService 客户端 :
-//   1. 用 ChannelManager(注册中心) 登记服务端地址
-//   2. 从注册中心获取 channel
+//   1. 用 SvcWatcher(注册中心) 从 etcd 发现服务地址并持续监控上下线
+//   2. 用 ChannelManager 缓存已发现的服务, 并从注册中心获取 channel
 //   3. 用 ClosureFactory 把 lambda 包成 closure 发起异步 rpc, 打印结果
 
+#include <chrono>
 #include <future>
 #include <iostream>
 #include <string>
+#include <thread>
 
 #include <brpc/channel.h>
 #include <brpc/controller.h>
 
-#include "cfl_rpc.h"
+#include "rpc.h"
+#include "etcd.h"
 #include "cal.pb.h"
 
 int main(int argc, char* argv[])
 {
-    std::string addr = "127.0.0.1:8080";
+    std::string etcd_addr = "http://127.0.0.1:2379"; // 注册中心地址
     int a = 10, b = 32;
-    if (argc >= 2) addr = argv[1];
+    if (argc >= 2) etcd_addr = argv[1];
     if (argc >= 4) { a = std::stoi(argv[2]); b = std::stoi(argv[3]); }
 
-    // (1) 注册中心 : 客户端登记服务端提供的服务地址
+    // (1) 注册中心 : 缓存从 etcd 发现的服务地址
     cpp_toolkit::ChannelManager::Ptr registry =
         std::make_shared<cpp_toolkit::ChannelManager>();
-    registry->AddService("CalService", addr);
-    std::cout << "[client] registered CalService -> " << addr << std::endl;
 
-    // (2) 从注册中心取出一个 channel (内部按 index 轮询负载均衡)
-    cpp_toolkit::ChannelPtr channel = registry->GetChannel("CalService");
+    // 用 SvcWatcher 监听 etcd: 服务上线/下线时自动增删 channel
+    cpp_toolkit::SvcWatcher::Ptr watcher = std::make_shared<cpp_toolkit::SvcWatcher>(
+        etcd_addr,
+        [registry](const std::string& key, const std::string& value) {
+            registry->AddService(key, value);
+            std::cout << "[client] service online : " << key
+                      << " -> " << value << std::endl;
+        },
+        [registry](const std::string& key, const std::string& value) {
+            registry->DelService(key, value);
+            std::cout << "[client] service offline: " << key
+                      << " -> " << value << std::endl;
+        });
+    if (!watcher->Watch())
+    {
+        std::cerr << "[client] connect to registry failed, etcd = "
+                  << etcd_addr << std::endl;
+        return -1;
+    }
+    std::cout << "[client] watching registry " << etcd_addr << std::endl;
+
+    // (2) 从注册中心获取 channel (等一会儿服务, 最多 10s)
+    cpp_toolkit::ChannelPtr channel;
+    for (int i = 0; i < 100; ++i)
+    {
+        channel = registry->GetChannel("CalService");
+        if (channel) break;
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
     if (!channel)
     {
         std::cerr << "[client] no available channel for CalService" << std::endl;

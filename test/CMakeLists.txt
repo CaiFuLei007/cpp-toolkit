@@ -40,9 +40,11 @@ file(GLOB
     "${CMAKE_CURRENT_SOURCE_DIR}/../src/*.cpp"
 )
 
-# cfl_rpc.cpp 依赖 brpc/protobuf, 不编入与 rpc 无关的单元测试, 保持其构建轻量
-set(CFL_RPC_SRC "${CMAKE_CURRENT_SOURCE_DIR}/../src/cfl_rpc.cpp")
-list(REMOVE_ITEM SRC_LISTS ${CFL_RPC_SRC})
+# rpc.cpp / etcd.cpp 依赖 brpc/protobuf/etcd, 不编入与 rpc 无关的单元测试, 保持其构建轻量
+list(REMOVE_ITEM SRC_LISTS
+    "${CMAKE_CURRENT_SOURCE_DIR}/../src/rpc.cpp"
+    "${CMAKE_CURRENT_SOURCE_DIR}/../src/etcd.cpp"
+)
 
 # 生成可执行程序 TODO
 # all_test: stdout 模式 (initLogger("stdout", ...))
@@ -66,7 +68,7 @@ find_package(PkgConfig REQUIRED)
 pkg_check_modules(BRPC REQUIRED brpc)
 
 # 用 protoc 生成 cal.pb.cc / cal.pb.h
-set(RPC_TEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/rpc_test)
+set(RPC_TEST_DIR ${CMAKE_CURRENT_SOURCE_DIR}/rpc_etcd_test)
 set(PROTO_FILE ${RPC_TEST_DIR}/cal.proto)
 set(GENERATED_DIR ${CMAKE_CURRENT_BINARY_DIR}/generated)
 file(MAKE_DIRECTORY ${GENERATED_DIR})
@@ -86,28 +88,46 @@ add_custom_command(
 # libbrpc.a 是静态库, 链接它时需要带上其私有 (传递) 依赖
 set(BRPC_PRIVATE_LIBS gflags leveldb protoc ssl crypto z rt dl pthread)
 
-# rpc 服务端 : ServerFactory 创建 server 提供 CalService.Add
-add_executable(rpc_server
-    ${CFL_RPC_SRC}
-    ${PROTO_SRCS}
-    ${RPC_TEST_DIR}/rpc_server.cpp
-)
-target_include_directories(rpc_server PRIVATE ${GENERATED_DIR} ${RPC_TEST_DIR})
-target_link_libraries(rpc_server PRIVATE
-    ${BRPC_LDFLAGS} ${BRPC_PRIVATE_LIBS}
-    protobuf::libprotobuf
+# rpc/etcd 封装源码 (依赖 brpc/protobuf/etcd)
+set(RPC_SRCS
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/rpc.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/../src/etcd.cpp
 )
 
-# rpc 客户端 : ChannelManager 注册中心 + ClosureFactory 异步回调
-add_executable(rpc_client
-    ${CFL_RPC_SRC}
+# etcd-cpp-apiv3 头/库 (libetcd-cpp-api.so), 安装在 /usr/local
+set(ETCD_INCLUDE_DIR /usr/local/include)
+set(ETCD_LIB_DIR /usr/local/lib)
+
+# rpc 服务端 : ServerFactory 创建 server 提供 CalService.Add, 并用 SvcProvider 注册到 etcd
+add_executable(rpc_etcd_server
+    ${RPC_SRCS}
     ${PROTO_SRCS}
-    ${RPC_TEST_DIR}/rpc_client.cpp
+    ${RPC_TEST_DIR}/rpc_etcd_server.cpp
 )
-target_include_directories(rpc_client PRIVATE ${GENERATED_DIR} ${RPC_TEST_DIR})
-target_link_libraries(rpc_client PRIVATE
+target_include_directories(rpc_etcd_server PRIVATE
+    ${GENERATED_DIR} ${RPC_TEST_DIR} ${ETCD_INCLUDE_DIR}
+)
+target_link_directories(rpc_etcd_server PRIVATE ${ETCD_LIB_DIR})
+target_link_libraries(rpc_etcd_server PRIVATE
     ${BRPC_LDFLAGS} ${BRPC_PRIVATE_LIBS}
     protobuf::libprotobuf
+    etcd-cpp-api
+)
+
+# rpc 客户端 : SvcWatcher 从 etcd 发现服务 + ChannelManager 缓存 + ClosureFactory 异步回调
+add_executable(rpc_etcd_client
+    ${RPC_SRCS}
+    ${PROTO_SRCS}
+    ${RPC_TEST_DIR}/rpc_etcd_client.cpp
+)
+target_include_directories(rpc_etcd_client PRIVATE
+    ${GENERATED_DIR} ${RPC_TEST_DIR} ${ETCD_INCLUDE_DIR}
+)
+target_link_directories(rpc_etcd_client PRIVATE ${ETCD_LIB_DIR})
+target_link_libraries(rpc_etcd_client PRIVATE
+    ${BRPC_LDFLAGS} ${BRPC_PRIVATE_LIBS}
+    protobuf::libprotobuf
+    etcd-cpp-api
 )
 
 # =================================================================
