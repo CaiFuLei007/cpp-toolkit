@@ -51,7 +51,7 @@ add_library(cpp_toolkit STATIC
 target_include_directories(cpp_toolkit
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:include>
+        $<INSTALL_INTERFACE:include/cpp-toolkit>
 )
 
 target_link_libraries(cpp_toolkit
@@ -72,12 +72,12 @@ install(TARGETS cpp_toolkit
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-    INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+    INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/cpp-toolkit
 )
 
-# 安装头文件(保留 include 下的目录结构)
+# 安装头文件到 include/cpp-toolkit 下
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/cpp-toolkit
     FILES_MATCHING
         PATTERN "*.h"
         PATTERN "*.hpp"
@@ -98,11 +98,16 @@ write_basic_package_version_file(
     COMPATIBILITY SameMajorVersion
 )
 
-configure_package_config_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/cpp_toolkitConfig.cmake.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/cpp_toolkitConfig.cmake"
-    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/cpp_toolkit
-)
+# 直接生成 Config 文件(无需模板文件)
+file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/cpp_toolkitConfig.cmake" [===[
+include(CMakeFindDependencyMacro)
+
+# cpp_toolkit 依赖 spdlog 与 jsoncpp,下游使用前需先找到它们
+find_dependency(spdlog)
+find_dependency(jsoncpp)
+
+include("${CMAKE_CURRENT_LIST_DIR}/cpp_toolkitTargets.cmake")
+]===])
 
 install(FILES
     "${CMAKE_CURRENT_BINARY_DIR}/cpp_toolkitConfig.cmake"
