@@ -4,12 +4,11 @@
 
 namespace cpp_toolkit {
 
-const size_t MAX_WAIT_TIME = 60;
 
 bool WaitConnected(std::shared_ptr<etcd::Client> etcd_client)
 {
     int wait_time = 1;
-    while(!etcd_client->head().get().is_ok() && wait_time <= MAX_WAIT_TIME)
+    while(!etcd_client->head().get().is_ok() && wait_time <= ETCD_MAX_WAIT_TIME)
     {
         std::this_thread::sleep_for(std::chrono::seconds(wait_time));
         wait_time *= 2;
@@ -28,7 +27,8 @@ instance_id_(instance_id)
 
 std::string SvcProvider::GenerateKey()
 {
-    return "/" + service_name_ + "/" + instance_id_;
+    std::string id = instance_id_.empty() ? service_addr_ : instance_id_;
+    return "/" + service_name_ + "/" + id;
 }
 
 bool SvcProvider::Registry(int ttl)
@@ -53,16 +53,21 @@ bool SvcProvider::Registry(int ttl)
 
     auto callback = [this, ttl](std::exception_ptr eptr)
     {
-        if(reconnect_time_ > MAX_RECONNECT_TIME)
+        if(reconnect_time_ > ETCD_MAX_RECONNECT_TIME)
         {
             return;
         }
-        std::this_thread::sleep_for(std::chrono::seconds(reconnect_time_));
-        if (this->Registry(ttl)) {
-            reconnect_time_ = 1;        // 重连成功 → 重置退避
-        } else {
-            reconnect_time_ = std::min(reconnect_time_ * 2, MAX_RECONNECT_TIME); // 失败 → 翻倍，封顶
-        }
+        std::thread([this, ttl]{
+            std::this_thread::sleep_for(std::chrono::seconds(reconnect_time_));
+            if (this->Registry(ttl)) 
+            {
+                reconnect_time_ = 1;        // 重连成功 → 重置退避
+            } 
+            else 
+            {
+                reconnect_time_ = reconnect_time_ * 2; // 失败 → 翻倍
+            }
+        }).detach();
     };
 
     etcd_keep_alive_.reset(new etcd::KeepAlive(etcd_center_addr_ , callback, ttl , lease_id));
@@ -114,7 +119,7 @@ void SvcWatcher::HandleWatchEvent(const etcd::Response &resp)
     }
 }
 
-bool SvcWatcher::Watch()
+bool SvcWatcher::Watch(const std::string &key_prefix)
 {
     std::shared_ptr<etcd::Client> etcd_client = std::make_shared<etcd::Client>(etcd_center_addr_);
     if(!WaitConnected(etcd_client))
@@ -122,7 +127,7 @@ bool SvcWatcher::Watch()
         return false;
     }
 
-    auto resp = etcd_client->ls("/" , 0).get();
+    auto resp = etcd_client->ls(key_prefix , 0).get();
     if(!resp.is_ok())
     {
         return false;
@@ -134,21 +139,24 @@ bool SvcWatcher::Watch()
             online_callback_(key, value.as_string());
     }
 
-    etcd_watcher_.reset(new etcd::Watcher(etcd_center_addr_ , "/" , std::bind(&SvcWatcher::HandleWatchEvent, this , std::placeholders::_1) , true));
-    etcd_watcher_->Wait([this](bool cond) {
+    etcd_watcher_.reset(new etcd::Watcher(etcd_center_addr_ , key_prefix , std::bind(&SvcWatcher::HandleWatchEvent, this , std::placeholders::_1) , true));
+    etcd_watcher_->Wait([this, key_prefix](bool cond) {
         if(cond)
         {
             return;
         }
-        if (reconnect_time_ > MAX_RECONNECT_TIME) {
+        if (reconnect_time_ > ETCD_MAX_RECONNECT_TIME) {
             return;
         }
         std::this_thread::sleep_for(std::chrono::seconds(reconnect_time_));
 
-        if (this->Watch()) {
+        if (this->Watch(key_prefix)) 
+        {
             reconnect_time_ = 1;
-        } else {
-            reconnect_time_ = std::min(reconnect_time_ * 2, MAX_RECONNECT_TIME);
+        } 
+        else 
+        {
+            reconnect_time_ = reconnect_time_ * 2;
         }
     });
     return true;

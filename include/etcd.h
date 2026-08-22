@@ -13,17 +13,18 @@
 #include <string>
 #include <memory>
 #include <functional>
+#include <atomic>
 
 namespace cpp_toolkit {
 
+constexpr size_t ETCD_MAX_WAIT_TIME = 60;
+constexpr size_t ETCD_MAX_RECONNECT_TIME = 60;
 
 class SvcProvider {
 public:
     using Ptr = std::shared_ptr<SvcProvider>;
 private:
-    static const size_t MAX_RECONNECT_TIME = 60;
-
-    size_t reconnect_time_;
+    std::atomic<size_t> reconnect_time_;
     std::string etcd_center_addr_;
     std::string service_name_;
     std::string service_addr_;
@@ -33,7 +34,7 @@ private:
 private:
     std::string GenerateKey();
 public:
-    SvcProvider(const std::string &etcd_center_addr , const std::string &service_name, const std::string &service_addr, const std::string &instance_id);
+    SvcProvider(const std::string &etcd_center_addr , const std::string &service_name, const std::string &service_addr, const std::string &instance_id = "");
     bool Registry(int ttl);
 };
 
@@ -43,9 +44,7 @@ public:
     using Ptr = std::shared_ptr<SvcWatcher>;
     using WatchCallback = std::function<void(const std::string &key, const std::string &value)>;
 private:
-    static const size_t MAX_RECONNECT_TIME = 60;
-
-    size_t reconnect_time_;
+    std::atomic<size_t> reconnect_time_;
     std::string etcd_center_addr_;
     WatchCallback online_callback_;
     WatchCallback offline_callback_;
@@ -56,7 +55,7 @@ private:
     void HandleWatchEvent(const etcd::Response &resp);
 public:
     SvcWatcher(const std::string &etcd_center_addr , WatchCallback&& online_callback , WatchCallback&& offline_callback);
-    bool Watch();
+    bool Watch(const std::string &key_prefix);
 };
 
 } // namespace cpp_toolkit
