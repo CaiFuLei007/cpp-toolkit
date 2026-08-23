@@ -114,3 +114,67 @@ install(FILES
     "${CMAKE_CURRENT_BINARY_DIR}/cpp_toolkitConfigVersion.cmake"
     DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/cpp_toolkit
 )
+
+# =================================================================
+#                         卸载目标
+# =================================================================
+
+# 生成卸载脚本(无需模板文件),依据 install_manifest.txt 删除已安装的文件
+file(WRITE "${CMAKE_CURRENT_BINARY_DIR}/uninstall.cmake" [===[
+get_filename_component(BUILD_DIR "${CMAKE_SCRIPT_MODE_FILE}" DIRECTORY)
+set(MANIFEST "${BUILD_DIR}/install_manifest.txt")
+
+if(NOT EXISTS "${MANIFEST}")
+    message(FATAL_ERROR "未找到 install_manifest.txt,请先执行安装: cmake --install build")
+endif()
+
+file(READ "${MANIFEST}" FILES)
+string(STRIP "${FILES}" FILES)
+string(REGEX REPLACE "\n" ";" FILES "${FILES}")
+
+# 删除清单中的所有文件
+foreach(FILE ${FILES})
+    if(IS_SYMLINK "$ENV{DESTDIR}${FILE}" OR EXISTS "$ENV{DESTDIR}${FILE}")
+        file(REMOVE "$ENV{DESTDIR}${FILE}")
+        if(EXISTS "$ENV{DESTDIR}${FILE}" OR IS_SYMLINK "$ENV{DESTDIR}${FILE}")
+            message(SEND_ERROR "删除失败(可能需要 sudo): $ENV{DESTDIR}${FILE}")
+        else()
+            message(STATUS "已删除: $ENV{DESTDIR}${FILE}")
+        endif()
+    else()
+        message(STATUS "文件不存在,跳过: $ENV{DESTDIR}${FILE}")
+    endif()
+endforeach()
+
+# 收集文件所在目录并去重
+set(DIRS "")
+foreach(FILE ${FILES})
+    get_filename_component(DIR "${FILE}" DIRECTORY)
+    list(APPEND DIRS "${DIR}")
+endforeach()
+list(REMOVE_DUPLICATES DIRS)
+
+# 由深到浅删除因卸载而变空的目录,避免留下残留
+list(SORT DIRS ORDER DESCENDING)
+foreach(DIR ${DIRS})
+    file(GLOB ENTRIES "$ENV{DESTDIR}${DIR}/*" "$ENV{DESTDIR}${DIR}/.*")
+    list(FILTER ENTRIES EXCLUDE REGEX "/[.][.]?$")
+    if(NOT ENTRIES)
+        file(REMOVE_RECURSE "$ENV{DESTDIR}${DIR}")
+        if(EXISTS "$ENV{DESTDIR}${DIR}")
+            message(SEND_ERROR "删除失败(可能需要 sudo): $ENV{DESTDIR}${DIR}")
+        else()
+            message(STATUS "已删除空目录: $ENV{DESTDIR}${DIR}")
+        endif()
+    endif()
+endforeach()
+
+message(STATUS "卸载完成")
+]===])
+
+# 执行方式: cmake --build build --target uninstall
+add_custom_target(uninstall
+    COMMAND ${CMAKE_COMMAND} -P "${CMAKE_CURRENT_BINARY_DIR}/uninstall.cmake"
+    COMMENT "正在卸载已安装的文件..."
+    VERBATIM
+)

@@ -1,5 +1,5 @@
 
-#include "json_util.h"
+#include "util.h"
 
 namespace cpp_toolkit
 {
@@ -25,5 +25,20 @@ bool JsonUtil::SerializePretty(const Json::Value& json, std::string& str)
     str = os.str();
     return true;
 }
+
+std::string UuidUtil::GenerateUuidV4()
+{
+    boost::uuids::random_generator gen;
+    boost::uuids::uuid id = gen(); 
+    return boost::uuids::to_string(id);
+}
+
+std::string UuidUtil::GenerateUuidV3(const std::string& str , boost::uuids::uuid namespace_uuid)
+{
+     boost::uuids::name_generator_sha1 gen(namespace_uuid);
+    boost::uuids::uuid id = gen(str);
+    return boost::uuids::to_string(id);
+}
+
 
 } // namespace cpp_toolkit
