@@ -42,6 +42,11 @@ find_package(PkgConfig REQUIRED)
 pkg_check_modules(BRPC REQUIRED IMPORTED_TARGET brpc)
 find_package(etcd-cpp-api REQUIRED)
 
+# fdfs.cpp 封装依赖 fastdfs 客户端 (无 cmake config / pkg-config, 按名称链接)
+# 静态库构建期不解析符号, 用 find_library 提前发现库缺失, 避免下游链接时才报错
+find_library(FDFSCLIENT_LIBRARY NAMES fdfsclient REQUIRED)
+find_library(FASTCOMMON_LIBRARY NAMES fastcommon REQUIRED)
+
 # =================================================================
 #                         生成静态库
 # =================================================================
@@ -69,6 +74,11 @@ target_link_libraries(cpp_toolkit
         PkgConfig::BRPC
         Threads::Threads
         etcd-cpp-api
+        # fdfs.cpp : g_tracker_group/tracker_*/storage_* 在 libfdfsclient,
+        # g_log_context/log_init 在 libfastcommon, 头文件也直接暴露给下游,
+        # 按名称链接 (导出为 -l 标志, 不绑定本机绝对路径)
+        fdfsclient
+        fastcommon
         # libbrpc.a 是静态库 : BRPC_STATIC_LDFLAGS 是 pkg-config --static 展开
         # brpc.pc 的 Libs.private (gflags/leveldb/protoc/ssl/crypto/z/rt/dl) 的结果,
         # 作为传递依赖一并导出, 下游最终链接时符号才能闭合
