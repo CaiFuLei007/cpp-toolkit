@@ -14,6 +14,7 @@ void Logger::initLogger(const logger_settings& settings)
 
     if(settings.async) // 异步日志
     {
+        spdlog::init_thread_pool(settings.queue_size, settings.thread_count);
         if("stdout" == settings.loggerFile)
         {
             _logger = spdlog::stdout_color_mt<spdlog::async_factory>(settings.loggerName);
@@ -22,7 +23,6 @@ void Logger::initLogger(const logger_settings& settings)
         {
             _logger = spdlog::basic_logger_mt<spdlog::async_factory>(settings.loggerName, settings.loggerFile);
         }
-        spdlog::init_thread_pool(settings.queue_size, settings.thread_count);
     }
     else 
     {
