@@ -7,6 +7,9 @@ namespace cpp_toolkit {
 bool Channels::AddChannel(const std::string& addr_ip_and_port)
 {
     std::lock_guard<std::mutex> lock(mutex_);
+    if (channels_hash_.count(addr_ip_and_port) > 0) {
+        return true;
+    }
     std::shared_ptr<brpc::Channel> channel = std::make_shared<brpc::Channel>();
     brpc::ChannelOptions options;
     options.protocol = "baidu_std";
@@ -14,9 +17,6 @@ bool Channels::AddChannel(const std::string& addr_ip_and_port)
     if(ret != 0)
     {
         return false;
-    }
-    if (channels_hash_.count(addr_ip_and_port) > 0) {
-        return true;
     }
     channels_nums_.push_back(channel);
     channels_hash_.emplace(addr_ip_and_port, channel);
@@ -52,14 +52,38 @@ ChannelPtr Channels::GetChannel()
     return channels_nums_[i];
 }
 
+void ChannelManager::SetCareService(const std::string& service_name)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    channels_.emplace(service_name , std::make_shared<Channels>());
+}
+void ChannelManager::SetCareService(const std::vector<std::string>& service_names)
+{
+    for(auto& service_name : service_names)
+    {
+        SetCareService(service_name);
+    }
+}
+void ChannelManager::DelCareService(const std::string& service_name)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    channels_.erase(service_name);
+}
+bool ChannelManager::IsCareService(const std::string& service_name)
+{
+    std::lock_guard<std::mutex> lock(mutex_);
+    return channels_.count(service_name) > 0;
+}
+
 void ChannelManager::AddService(const std::string& service_name, const std::string& addr_ip_and_port)
 {
     Channels::Ptr channel;
     {
         std::lock_guard<std::mutex> lock(mutex_);
         auto it = channels_.find(service_name);
+        // 非关心服务 , 不添加通道
         if (it == channels_.end()) {
-            it = channels_.emplace(service_name, std::make_shared<Channels>()).first;
+            return;
         }
         channel = it->second;
     }
@@ -109,7 +133,7 @@ google::protobuf::Closure* ClosureFactory::CreateClosure(Callback&& callback)
 std::shared_ptr<brpc ::Server> ServerFactory::CreateServer(int port, google::protobuf::Service* service)
 {
     std::shared_ptr<brpc::Server> server = std::make_shared<brpc::Server>();
-    int ret = server->AddService(service , brpc::SERVER_DOESNT_OWN_SERVICE); // 如果服务创建失败 , 会删除服务
+    int ret = server->AddService(service , brpc::SERVER_DOESNT_OWN_SERVICE);
     if(ret != 0)
     {
         return nullptr;

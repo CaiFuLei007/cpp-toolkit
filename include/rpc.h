@@ -58,6 +58,10 @@ public:
 
     void AddService(const std::string& service_name, const std::string& addr_ip_and_port);
     void DelService(const std::string& service_name, const std::string& addr_ip_and_port);
+    void SetCareService(const std::string& service_name);
+    void SetCareService(const std::vector<std::string>& service_names);
+    void DelCareService(const std::string& service_name);
+    bool IsCareService(const std::string& service_name);
     ChannelPtr GetChannel(const std::string& service_name);
 };
 
