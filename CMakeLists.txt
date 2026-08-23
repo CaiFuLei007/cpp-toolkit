@@ -47,6 +47,9 @@ find_package(etcd-cpp-api REQUIRED)
 find_library(FDFSCLIENT_LIBRARY NAMES fdfsclient REQUIRED)
 find_library(FASTCOMMON_LIBRARY NAMES fastcommon REQUIRED)
 
+# redis.cpp 封装依赖 redis-plus-plus; 其 .pc 的 Requires 会自动展开 hiredis
+pkg_check_modules(REDISPP REQUIRED IMPORTED_TARGET redis++)
+
 # =================================================================
 #                         生成静态库
 # =================================================================
@@ -79,6 +82,9 @@ target_link_libraries(cpp_toolkit
         # 按名称链接 (导出为 -l 标志, 不绑定本机绝对路径)
         fdfsclient
         fastcommon
+        # redis.cpp : redis.h 把 sw/redis++ 头暴露给下游; hiredis 经
+        # redis++.pc 的 Requires 自动带入, 头文件搜索路径一并传递
+        PkgConfig::REDISPP
         # libbrpc.a 是静态库 : BRPC_STATIC_LDFLAGS 是 pkg-config --static 展开
         # brpc.pc 的 Libs.private (gflags/leveldb/protoc/ssl/crypto/z/rt/dl) 的结果,
         # 作为传递依赖一并导出, 下游最终链接时符号才能闭合
@@ -136,6 +142,7 @@ find_dependency(Threads)
 find_dependency(PkgConfig)
 pkg_check_modules(BRPC REQUIRED IMPORTED_TARGET brpc)
 find_dependency(etcd-cpp-api)
+pkg_check_modules(REDISPP REQUIRED IMPORTED_TARGET redis++)
 
 include("${CMAKE_CURRENT_LIST_DIR}/cpp_toolkitTargets.cmake")
 ]===])
