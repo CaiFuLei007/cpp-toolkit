@@ -3,7 +3,7 @@
 
 /*
     odb 封装
-    1. struct mysql_settings  mysql 连接参数
+    1. struct MySQLSettings  mysql 连接参数
     2. ODBFactory  odb 工厂类，用于创建 odb handle 句柄
 */
 
@@ -15,7 +15,7 @@
 namespace cpp_toolkit
 {
 
-struct mysql_settings
+struct MySQLSettings
 {
     std::string host;
     unsigned int port = 0;
@@ -29,7 +29,7 @@ struct mysql_settings
 class ODBFactory
 {
 public:
-    static std::shared_ptr<odb::database> Create(const mysql_settings& settings);
+    static std::shared_ptr<odb::database> Create(const MySQLSettings& settings);
 };
 
 

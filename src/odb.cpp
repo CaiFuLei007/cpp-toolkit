@@ -3,7 +3,7 @@
 
 namespace cpp_toolkit
 {
-std::shared_ptr<odb::database> ODBFactory::Create(const mysql_settings& settings)
+std::shared_ptr<odb::database> ODBFactory::Create(const MySQLSettings& settings)
 {
     std::unique_ptr<odb::mysql::connection_factory> pool(new odb::mysql::connection_pool_factory(settings.connection_pool_size));
     auto handle = std::make_shared<odb::mysql::database>(
