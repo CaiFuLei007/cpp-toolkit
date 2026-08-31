@@ -29,4 +29,4 @@ public:
     static std::shared_ptr<sw::redis::Redis> Create(const RedisSettings& settings);
 
 };
-} // namespace toolkit
+} // namespace cpp_toolkit
