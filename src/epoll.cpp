@@ -28,18 +28,19 @@ bool Epoll::AddFd(int fd, uint32_t events)
     struct epoll_event event;
     event.events = events;
     event.data.fd = fd;
-    return EpollCtl(EPOLL_CTL_ADD, fd, &event);
+    // epoll_ctl 返回 0 表示成功, 转换成 true 表示成功
+    return EpollCtl(EPOLL_CTL_ADD, fd, &event) == 0;
 }
 bool Epoll::ModFd(int fd, uint32_t events)
 {
     struct epoll_event event;
     event.events = events;
     event.data.fd = fd;
-    return EpollCtl(EPOLL_CTL_MOD, fd, &event);
+    return EpollCtl(EPOLL_CTL_MOD, fd, &event) == 0;
 }
 bool Epoll::DelFd(int fd)
 {
-    return EpollCtl(EPOLL_CTL_DEL, fd, nullptr);
+    return EpollCtl(EPOLL_CTL_DEL, fd, nullptr) == 0;
 }
 
 int Epoll::Wait(std::vector<struct epoll_event>& events, int timeout)

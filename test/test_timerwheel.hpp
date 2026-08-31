@@ -17,65 +17,22 @@ TEST(TimeTaskTest, Construct)
     std::atomic<int> counter{0};
     auto task = [&counter]() { counter++; };
 
-    cpp_toolkit::TimeTask tt(1, 100, task);
+    cpp_toolkit::TimeTask tt(1, task);
 
     EXPECT_EQ(tt.GetId(), 1);
-    EXPECT_EQ(tt.TimeOut(), 100);
 }
 
 TEST(TimeTaskTest, ConstructWithDifferentIds)
 {
     auto noop = []() {};
 
-    cpp_toolkit::TimeTask tt1(0, 10, noop);
-    cpp_toolkit::TimeTask tt2(999, 20, noop);
-    cpp_toolkit::TimeTask tt3(-1, 30, noop);
+    cpp_toolkit::TimeTask tt1(0, noop);
+    cpp_toolkit::TimeTask tt2(999, noop);
+    cpp_toolkit::TimeTask tt3(-1, noop);
 
     EXPECT_EQ(tt1.GetId(), 0);
     EXPECT_EQ(tt2.GetId(), 999);
     EXPECT_EQ(tt3.GetId(), -1);
-}
-
-TEST(TimeTaskTest, ConstructWithDifferentTimeouts)
-{
-    auto noop = []() {};
-
-    cpp_toolkit::TimeTask tt1(1, 0, noop);
-    cpp_toolkit::TimeTask tt2(1, 1, noop);
-    cpp_toolkit::TimeTask tt3(1, 86400, noop);
-
-    EXPECT_EQ(tt1.TimeOut(), 0);
-    EXPECT_EQ(tt2.TimeOut(), 1);
-    EXPECT_EQ(tt3.TimeOut(), 86400);
-}
-
-// GetTask 测试
-TEST(TimeTaskTest, GetTaskReturnsCallable)
-{
-    std::atomic<int> counter{0};
-    auto task = [&counter]() { counter++; };
-
-    cpp_toolkit::TimeTask tt(1, 100, task);
-    auto retrieved_task = tt.GetTask();
-
-    // 获取的任务应该可以被调用
-    retrieved_task();
-    EXPECT_EQ(counter, 1);
-}
-
-TEST(TimeTaskTest, GetTaskReturnsCopy)
-{
-    std::atomic<int> counter{0};
-    auto task = [&counter]() { counter++; };
-
-    cpp_toolkit::TimeTask tt(1, 100, task);
-    auto task1 = tt.GetTask();
-    auto task2 = tt.GetTask();
-
-    // 两次获取应该是独立的副本
-    task1();
-    task2();
-    EXPECT_EQ(counter, 2);
 }
 
 // Handle 测试 - 未取消时执行任务
@@ -84,7 +41,7 @@ TEST(TimeTaskTest, HandleExecutesTask)
     std::atomic<int> counter{0};
     auto task = [&counter]() { counter++; };
 
-    cpp_toolkit::TimeTask tt(1, 100, task);
+    cpp_toolkit::TimeTask tt(1, task);
 
     EXPECT_EQ(counter, 0);
     tt.Handle();
@@ -96,7 +53,7 @@ TEST(TimeTaskTest, HandleMultipleTimes)
     std::atomic<int> counter{0};
     auto task = [&counter]() { counter++; };
 
-    cpp_toolkit::TimeTask tt(1, 100, task);
+    cpp_toolkit::TimeTask tt(1, task);
 
     tt.Handle();
     tt.Handle();
@@ -109,9 +66,9 @@ TEST(TimeTaskTest, HandleExecutesCorrectTask)
 {
     std::vector<int> execution_order;
 
-    cpp_toolkit::TimeTask tt1(1, 100, [&execution_order]() { execution_order.push_back(1); });
-    cpp_toolkit::TimeTask tt2(2, 200, [&execution_order]() { execution_order.push_back(2); });
-    cpp_toolkit::TimeTask tt3(3, 300, [&execution_order]() { execution_order.push_back(3); });
+    cpp_toolkit::TimeTask tt1(1, [&execution_order]() { execution_order.push_back(1); });
+    cpp_toolkit::TimeTask tt2(2, [&execution_order]() { execution_order.push_back(2); });
+    cpp_toolkit::TimeTask tt3(3, [&execution_order]() { execution_order.push_back(3); });
 
     tt2.Handle();
     tt1.Handle();
@@ -127,7 +84,7 @@ TEST(TimeTaskTest, CancelPreventsExecution)
     std::atomic<int> counter{0};
     auto task = [&counter]() { counter++; };
 
-    cpp_toolkit::TimeTask tt(1, 100, task);
+    cpp_toolkit::TimeTask tt(1, task);
 
     tt.Cancel();
     tt.Handle();
@@ -140,7 +97,7 @@ TEST(TimeTaskTest, CancelAfterHandleStillAllowsPrevious)
     std::atomic<int> counter{0};
     auto task = [&counter]() { counter++; };
 
-    cpp_toolkit::TimeTask tt(1, 100, task);
+    cpp_toolkit::TimeTask tt(1, task);
 
     tt.Handle();
     EXPECT_EQ(counter, 1);
@@ -155,7 +112,7 @@ TEST(TimeTaskTest, HandleAfterCancelNoop)
     std::atomic<int> counter{0};
     auto task = [&counter]() { counter++; };
 
-    cpp_toolkit::TimeTask tt(1, 100, task);
+    cpp_toolkit::TimeTask tt(1, task);
 
     tt.Cancel();
     tt.Handle();
@@ -274,53 +231,6 @@ TEST(SingleLayerTimerWheelTest, RemoveAndAddSameId)
     EXPECT_TRUE(wheel.HasTask(1));
 }
 
-// GetTask 测试
-TEST(SingleLayerTimerWheelTest, GetTaskReturnsValidPtr)
-{
-    cpp_toolkit::SingleLayerTimerWheel wheel(10);
-
-    std::atomic<int> counter{0};
-    auto task = [&counter]() { counter++; };
-    wheel.AddTask(1, 5, task);
-
-    auto task_ptr = wheel.GetTask(1);
-    ASSERT_NE(task_ptr, nullptr);
-    EXPECT_EQ(task_ptr->GetId(), 1);
-}
-
-TEST(SingleLayerTimerWheelTest, GetTaskReturnsNullptrForNonExistent)
-{
-    cpp_toolkit::SingleLayerTimerWheel wheel(10);
-
-    auto task_ptr = wheel.GetTask(999);
-    EXPECT_EQ(task_ptr, nullptr);
-}
-
-TEST(SingleLayerTimerWheelTest, GetTaskAfterRemove)
-{
-    cpp_toolkit::SingleLayerTimerWheel wheel(10);
-
-    wheel.AddTask(1, 5, []() {});
-    wheel.RemoveTask(1);
-
-    auto task_ptr = wheel.GetTask(1);
-    EXPECT_EQ(task_ptr, nullptr);
-}
-
-TEST(SingleLayerTimerWheelTest, GetTaskCanExecute)
-{
-    cpp_toolkit::SingleLayerTimerWheel wheel(10);
-
-    std::atomic<int> counter{0};
-    wheel.AddTask(1, 5, [&counter]() { counter++; });
-
-    auto task_ptr = wheel.GetTask(1);
-    ASSERT_NE(task_ptr, nullptr);
-
-    task_ptr->Handle();
-    EXPECT_EQ(counter, 1);
-}
-
 // 多个任务的不同超时测试
 TEST(SingleLayerTimerWheelTest, TasksWithDifferentTimeouts)
 {
@@ -428,18 +338,22 @@ TEST(MultiLayerTimerWheelTest, AddTaskTimeNormalization)
     int id3 = wheel.AddTask([]() {}, 0, 25, 0, 0);
     EXPECT_GE(id3, 0);
 
-    // 测试时间进位: 400 days = 35 days (mod 365)
-    int id4 = wheel.AddTask([]() {}, 400, 0, 0, 0);
+    // 测试跨层进位: 59 minutes + 120 seconds = 1 hour 1 minute
+    int id4 = wheel.AddTask([]() {}, 0, 0, 59, 120);
     EXPECT_GE(id4, 0);
+
+    // 超过 365 天容量, 应该被拒绝
+    int id5 = wheel.AddTask([]() {}, 400, 0, 0, 0);
+    EXPECT_EQ(id5, -1);
 }
 
 TEST(MultiLayerTimerWheelTest, AddTaskWithZeroTimeout)
 {
     cpp_toolkit::MultiLayerTimerWheel wheel;
 
-    // 全零超时应该仍然能添加（虽然可能立即触发或不触发）
+    // 全零超时无法表达有效时长, 应该被拒绝
     int id = wheel.AddTask([]() {}, 0, 0, 0, 0);
-    EXPECT_GE(id, 0);
+    EXPECT_EQ(id, -1);
 }
 
 TEST(MultiLayerTimerWheelTest, AddMultipleTasks)
@@ -552,7 +466,7 @@ TEST(MultiLayerTimerWheelTest, MultipleTaskTypes)
 TEST(TimeTaskTest, TaskWithException)
 {
     auto task = []() { throw std::runtime_error("test exception"); };
-    cpp_toolkit::TimeTask tt(1, 100, task);
+    cpp_toolkit::TimeTask tt(1, task);
 
     // Handle 应该传播异常
     EXPECT_THROW(tt.Handle(), std::runtime_error);
@@ -561,7 +475,7 @@ TEST(TimeTaskTest, TaskWithException)
 TEST(TimeTaskTest, TaskWithLargeId)
 {
     auto noop = []() {};
-    cpp_toolkit::TimeTask tt(1000000, 100, noop);
+    cpp_toolkit::TimeTask tt(1000000, noop);
 
     EXPECT_EQ(tt.GetId(), 1000000);
 }
@@ -569,7 +483,7 @@ TEST(TimeTaskTest, TaskWithLargeId)
 TEST(TimeTaskTest, TaskWithNegativeId)
 {
     auto noop = []() {};
-    cpp_toolkit::TimeTask tt(-100, 100, noop);
+    cpp_toolkit::TimeTask tt(-100, noop);
 
     EXPECT_EQ(tt.GetId(), -100);
 }
@@ -586,16 +500,18 @@ TEST(SingleLayerTimerWheelTest, SmallWheelLength)
 {
     cpp_toolkit::SingleLayerTimerWheel wheel(1);
 
-    wheel.AddTask(1, 0, []() {});
+    // timeout 必须 > 0
+    wheel.AddTask(1, 1, []() {});
     EXPECT_TRUE(wheel.HasTask(1));
+    EXPECT_FALSE(wheel.HasTask(2));
 }
 
 TEST(MultiLayerTimerWheelTest, LargeTimeValues)
 {
     cpp_toolkit::MultiLayerTimerWheel wheel;
 
-    // 365 days, 23 hours, 59 minutes, 59 seconds
-    int id = wheel.AddTask([]() {}, 365, 23, 59, 59);
+    // 容量上限: 364 days, 23 hours, 59 minutes, 59 seconds
+    int id = wheel.AddTask([]() {}, 364, 23, 59, 59);
     EXPECT_GE(id, 0);
 }
 
@@ -603,9 +519,13 @@ TEST(MultiLayerTimerWheelTest, OverflowTimeValues)
 {
     cpp_toolkit::MultiLayerTimerWheel wheel;
 
-    // 超过正常范围的值应该被正确处理
-    int id = wheel.AddTask([]() {}, 1000, 100, 100, 100);
-    EXPECT_GE(id, 0);
+    // 超过 365 天容量的值应该被拒绝
+    int id1 = wheel.AddTask([]() {}, 1000, 100, 100, 100);
+    EXPECT_EQ(id1, -1);
+
+    // 365 天整也超出 (0, 365天) 的开区间
+    int id2 = wheel.AddTask([]() {}, 365, 0, 0, 0);
+    EXPECT_EQ(id2, -1);
 }
 
 TEST(MultiLayerTimerWheelTest, TaskLongerThanOneMinute)

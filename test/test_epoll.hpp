@@ -49,8 +49,7 @@ TEST(EpollTest, Destruct)
 
 // ============================================================
 // AddFd
-// 注意: epoll_ctl 返回 0 表示成功，但当前实现直接将返回值
-// 转为 bool，导致成功时返回 false。以下测试验证实际行为。
+// 语义: 操作成功返回 true, 失败返回 false
 // ============================================================
 TEST(EpollTest, AddFdRead)
 {
@@ -59,9 +58,8 @@ TEST(EpollTest, AddFdRead)
     ASSERT_NE(fd0, -1);
     ASSERT_NE(fd1, -1);
 
-    // epoll_ctl 成功返回 0，转为 bool 是 false
-    // 这里测试的是实际行为（成功时返回 0/false）
-    EXPECT_FALSE(epoll.AddFd(fd0, EPOLLIN));
+    // 添加成功返回 true
+    EXPECT_TRUE(epoll.AddFd(fd0, EPOLLIN));
 
     close(fd0);
     close(fd1);
@@ -74,7 +72,7 @@ TEST(EpollTest, AddFdWrite)
     ASSERT_NE(fd0, -1);
     ASSERT_NE(fd1, -1);
 
-    EXPECT_FALSE(epoll.AddFd(fd0, EPOLLOUT));
+    EXPECT_TRUE(epoll.AddFd(fd0, EPOLLOUT));
 
     close(fd0);
     close(fd1);
@@ -88,7 +86,7 @@ TEST(EpollTest, AddFdReadWrite)
     ASSERT_NE(fd1, -1);
 
     // 同时监听读写事件
-    EXPECT_FALSE(epoll.AddFd(fd0, EPOLLIN | EPOLLOUT));
+    EXPECT_TRUE(epoll.AddFd(fd0, EPOLLIN | EPOLLOUT));
 
     close(fd0);
     close(fd1);
@@ -102,9 +100,9 @@ TEST(EpollTest, AddFdMultiple)
     ASSERT_NE(fd0, -1);
     ASSERT_NE(fd2, -1);
 
-    // 添加多个 fd（都返回 false 表示成功）
-    EXPECT_FALSE(epoll.AddFd(fd0, EPOLLIN));
-    EXPECT_FALSE(epoll.AddFd(fd2, EPOLLIN));
+    // 添加多个 fd
+    EXPECT_TRUE(epoll.AddFd(fd0, EPOLLIN));
+    EXPECT_TRUE(epoll.AddFd(fd2, EPOLLIN));
 
     close(fd0);
     close(fd1);
@@ -116,8 +114,8 @@ TEST(EpollTest, AddFdInvalidFd)
 {
     cpp_toolkit::Epoll epoll;
 
-    // 添加无效 fd，epoll_ctl 失败返回 -1，转为 bool 是 true
-    EXPECT_TRUE(epoll.AddFd(-1, EPOLLIN));
+    // 添加无效 fd, epoll_ctl 失败返回 false
+    EXPECT_FALSE(epoll.AddFd(-1, EPOLLIN));
 }
 
 TEST(EpollTest, AddFdDuplicateFd)
@@ -126,11 +124,11 @@ TEST(EpollTest, AddFdDuplicateFd)
     auto [fd0, fd1] = MakeSocketPair();
     ASSERT_NE(fd0, -1);
 
-    // 第一次添加成功（返回 false）
-    EXPECT_FALSE(epoll.AddFd(fd0, EPOLLIN));
-
-    // 重复添加同一 fd 应该失败（返回 true）
+    // 第一次添加成功
     EXPECT_TRUE(epoll.AddFd(fd0, EPOLLIN));
+
+    // 重复添加同一 fd 应该失败 (EEXIST)
+    EXPECT_FALSE(epoll.AddFd(fd0, EPOLLIN));
 
     close(fd0);
     close(fd1);
@@ -145,11 +143,11 @@ TEST(EpollTest, ModFdChangeEvents)
     auto [fd0, fd1] = MakeSocketPair();
     ASSERT_NE(fd0, -1);
 
-    // 先添加读事件（成功返回 false）
-    EXPECT_FALSE(epoll.AddFd(fd0, EPOLLIN));
+    // 先添加读事件
+    EXPECT_TRUE(epoll.AddFd(fd0, EPOLLIN));
 
-    // 修改为写事件（成功返回 false）
-    EXPECT_FALSE(epoll.ModFd(fd0, EPOLLOUT));
+    // 修改为写事件
+    EXPECT_TRUE(epoll.ModFd(fd0, EPOLLOUT));
 
     close(fd0);
     close(fd1);
@@ -161,10 +159,10 @@ TEST(EpollTest, ModFdToReadWrite)
     auto [fd0, fd1] = MakeSocketPair();
     ASSERT_NE(fd0, -1);
 
-    EXPECT_FALSE(epoll.AddFd(fd0, EPOLLIN));
+    EXPECT_TRUE(epoll.AddFd(fd0, EPOLLIN));
 
     // 修改为同时监听读写
-    EXPECT_FALSE(epoll.ModFd(fd0, EPOLLIN | EPOLLOUT));
+    EXPECT_TRUE(epoll.ModFd(fd0, EPOLLIN | EPOLLOUT));
 
     close(fd0);
     close(fd1);
@@ -176,8 +174,8 @@ TEST(EpollTest, ModFdWithoutAdd)
     auto [fd0, fd1] = MakeSocketPair();
     ASSERT_NE(fd0, -1);
 
-    // 未添加的 fd 进行修改应该失败（返回 true）
-    EXPECT_TRUE(epoll.ModFd(fd0, EPOLLIN));
+    // 未添加的 fd 进行修改应该失败 (ENOENT)
+    EXPECT_FALSE(epoll.ModFd(fd0, EPOLLIN));
 
     close(fd0);
     close(fd1);
@@ -187,8 +185,8 @@ TEST(EpollTest, ModFdInvalidFd)
 {
     cpp_toolkit::Epoll epoll;
 
-    // 修改无效 fd 应该失败（返回 true）
-    EXPECT_TRUE(epoll.ModFd(-1, EPOLLIN));
+    // 修改无效 fd 应该失败
+    EXPECT_FALSE(epoll.ModFd(-1, EPOLLIN));
 }
 
 // ============================================================
@@ -200,9 +198,9 @@ TEST(EpollTest, DelFdAfterAdd)
     auto [fd0, fd1] = MakeSocketPair();
     ASSERT_NE(fd0, -1);
 
-    EXPECT_FALSE(epoll.AddFd(fd0, EPOLLIN));
-    // 删除成功返回 false
-    EXPECT_FALSE(epoll.DelFd(fd0));
+    EXPECT_TRUE(epoll.AddFd(fd0, EPOLLIN));
+    // 删除成功返回 true
+    EXPECT_TRUE(epoll.DelFd(fd0));
 
     close(fd0);
     close(fd1);
@@ -214,8 +212,8 @@ TEST(EpollTest, DelFdWithoutAdd)
     auto [fd0, fd1] = MakeSocketPair();
     ASSERT_NE(fd0, -1);
 
-    // 删除未添加的 fd 应该失败（返回 true）
-    EXPECT_TRUE(epoll.DelFd(fd0));
+    // 删除未添加的 fd 应该失败 (ENOENT)
+    EXPECT_FALSE(epoll.DelFd(fd0));
 
     close(fd0);
     close(fd1);
@@ -225,8 +223,8 @@ TEST(EpollTest, DelFdInvalidFd)
 {
     cpp_toolkit::Epoll epoll;
 
-    // 删除无效 fd 应该失败（返回 true）
-    EXPECT_TRUE(epoll.DelFd(-1));
+    // 删除无效 fd 应该失败
+    EXPECT_FALSE(epoll.DelFd(-1));
 }
 
 TEST(EpollTest, DelFdTwice)
@@ -235,11 +233,11 @@ TEST(EpollTest, DelFdTwice)
     auto [fd0, fd1] = MakeSocketPair();
     ASSERT_NE(fd0, -1);
 
-    EXPECT_FALSE(epoll.AddFd(fd0, EPOLLIN));
-    EXPECT_FALSE(epoll.DelFd(fd0));
-
-    // 第二次删除应该失败（返回 true）
+    EXPECT_TRUE(epoll.AddFd(fd0, EPOLLIN));
     EXPECT_TRUE(epoll.DelFd(fd0));
+
+    // 第二次删除应该失败 (ENOENT)
+    EXPECT_FALSE(epoll.DelFd(fd0));
 
     close(fd0);
     close(fd1);
@@ -252,9 +250,9 @@ TEST(EpollTest, AddAfterDel)
     ASSERT_NE(fd0, -1);
 
     // 添加 -> 删除 -> 再添加
-    EXPECT_FALSE(epoll.AddFd(fd0, EPOLLIN));
-    EXPECT_FALSE(epoll.DelFd(fd0));
-    EXPECT_FALSE(epoll.AddFd(fd0, EPOLLOUT));
+    EXPECT_TRUE(epoll.AddFd(fd0, EPOLLIN));
+    EXPECT_TRUE(epoll.DelFd(fd0));
+    EXPECT_TRUE(epoll.AddFd(fd0, EPOLLOUT));
 
     close(fd0);
     close(fd1);
@@ -272,8 +270,7 @@ TEST(EpollTest, WaitReadReady)
 
     SetNonBlocking(fd0);
 
-    // AddFd 成功（返回 false）
-    EXPECT_FALSE(epoll.AddFd(fd0, EPOLLIN));
+    EXPECT_TRUE(epoll.AddFd(fd0, EPOLLIN));
 
     // 往 fd1 写入数据，使 fd0 变为可读
     const char* msg = "hello";
@@ -296,7 +293,7 @@ TEST(EpollTest, WaitWriteReady)
     ASSERT_NE(fd0, -1);
     ASSERT_NE(fd1, -1);
 
-    EXPECT_FALSE(epoll.AddFd(fd0, EPOLLOUT));
+    EXPECT_TRUE(epoll.AddFd(fd0, EPOLLOUT));
 
     // socket 默认发送缓冲区为空，应该立即可写
     std::vector<struct epoll_event> events(10);
@@ -318,7 +315,7 @@ TEST(EpollTest, WaitTimeout)
 
     SetNonBlocking(fd0);
 
-    EXPECT_FALSE(epoll.AddFd(fd0, EPOLLIN));
+    EXPECT_TRUE(epoll.AddFd(fd0, EPOLLIN));
 
     // 没有数据可读，等待 50ms 应超时返回 0
     std::vector<struct epoll_event> events(10);
@@ -340,8 +337,8 @@ TEST(EpollTest, WaitMultipleFds)
     SetNonBlocking(fd0);
     SetNonBlocking(fd2);
 
-    EXPECT_FALSE(epoll.AddFd(fd0, EPOLLIN));
-    EXPECT_FALSE(epoll.AddFd(fd2, EPOLLIN));
+    EXPECT_TRUE(epoll.AddFd(fd0, EPOLLIN));
+    EXPECT_TRUE(epoll.AddFd(fd2, EPOLLIN));
 
     // 向两个 socket 写入数据
     const char* msg = "test";
@@ -375,8 +372,8 @@ TEST(EpollTest, WaitAfterDel)
 
     SetNonBlocking(fd0);
 
-    EXPECT_FALSE(epoll.AddFd(fd0, EPOLLIN));
-    EXPECT_FALSE(epoll.DelFd(fd0));
+    EXPECT_TRUE(epoll.AddFd(fd0, EPOLLIN));
+    EXPECT_TRUE(epoll.DelFd(fd0));
 
     // 写入数据
     const char* msg = "test";
@@ -410,7 +407,7 @@ TEST(EpollTest, WaitZeroTimeout)
 
     SetNonBlocking(fd0);
 
-    EXPECT_FALSE(epoll.AddFd(fd0, EPOLLIN));
+    EXPECT_TRUE(epoll.AddFd(fd0, EPOLLIN));
 
     // 没有数据可读，timeout=0 应立即返回 0
     std::vector<struct epoll_event> events(10);
@@ -430,7 +427,7 @@ TEST(EpollTest, WaitZeroTimeoutWithData)
 
     SetNonBlocking(fd0);
 
-    EXPECT_FALSE(epoll.AddFd(fd0, EPOLLIN));
+    EXPECT_TRUE(epoll.AddFd(fd0, EPOLLIN));
 
     // 写入数据
     const char* msg = "hello";
@@ -458,8 +455,8 @@ TEST(EpollTest, WaitSmallEventsBuffer)
     SetNonBlocking(fd0);
     SetNonBlocking(fd2);
 
-    EXPECT_FALSE(epoll.AddFd(fd0, EPOLLIN));
-    EXPECT_FALSE(epoll.AddFd(fd2, EPOLLIN));
+    EXPECT_TRUE(epoll.AddFd(fd0, EPOLLIN));
+    EXPECT_TRUE(epoll.AddFd(fd2, EPOLLIN));
 
     // 向两个 socket 写入数据
     const char* msg = "test";
@@ -488,11 +485,11 @@ TEST(EpollTest, AddModDelFlow)
     ASSERT_NE(fd0, -1);
     ASSERT_NE(fd1, -1);
 
-    // 添加读事件（成功返回 false）
-    EXPECT_FALSE(epoll.AddFd(fd0, EPOLLIN));
+    // 添加读事件
+    EXPECT_TRUE(epoll.AddFd(fd0, EPOLLIN));
 
-    // 修改为写事件（成功返回 false）
-    EXPECT_FALSE(epoll.ModFd(fd0, EPOLLOUT));
+    // 修改为写事件
+    EXPECT_TRUE(epoll.ModFd(fd0, EPOLLOUT));
 
     // 验证写事件可用
     std::vector<struct epoll_event> events(10);
@@ -500,8 +497,8 @@ TEST(EpollTest, AddModDelFlow)
     EXPECT_GE(n, 1);
     EXPECT_TRUE(events[0].events & EPOLLOUT);
 
-    // 删除（成功返回 false）
-    EXPECT_FALSE(epoll.DelFd(fd0));
+    // 删除
+    EXPECT_TRUE(epoll.DelFd(fd0));
 
     // 删除后 Wait 应超时
     n = epoll.Wait(events, 50);
@@ -526,8 +523,8 @@ TEST(EpollTest, MultipleInstances)
     SetNonBlocking(fd2);
 
     // epoll1 监听 fd0，epoll2 监听 fd2
-    EXPECT_FALSE(epoll1.AddFd(fd0, EPOLLIN));
-    EXPECT_FALSE(epoll2.AddFd(fd2, EPOLLIN));
+    EXPECT_TRUE(epoll1.AddFd(fd0, EPOLLIN));
+    EXPECT_TRUE(epoll2.AddFd(fd2, EPOLLIN));
 
     const char* msg = "test";
     write(fd1, msg, strlen(msg));
@@ -550,18 +547,3 @@ TEST(EpollTest, MultipleInstances)
     close(fd2);
     close(fd3);
 }
-
-// ============================================================
-// 语义说明测试
-// ============================================================
-// 注意: epoll_ctl() 系统调用返回 0 表示成功，-1 表示失败。
-// 当前 Epoll 封装类的 AddFd/ModFd/DelFd 方法直接返回
-// EpollCtl() 的返回值（即 epoll_ctl 的返回值），
-// 因此成功时返回 false（0），失败时返回 true（-1）。
-// 这与通常的 bool 语义相反。
-//
-// 如果需要符合常规 bool 语义，可以将返回值改为：
-//   return EpollCtl(...) == 0;
-// 或
-//   return !EpollCtl(...);
-// ============================================================
