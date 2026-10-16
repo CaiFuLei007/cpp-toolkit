@@ -66,7 +66,7 @@ add_library(cpp_toolkit STATIC
 target_include_directories(cpp_toolkit
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:include/cpp-toolkit>
+        $<INSTALL_INTERFACE:include/cpp_toolkit>
 )
 
 target_link_libraries(cpp_toolkit
@@ -103,12 +103,12 @@ install(TARGETS cpp_toolkit
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-    INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/cpp-toolkit
+    INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/cpp_toolkit
 )
 
-# 安装头文件到 include/cpp-toolkit 下
+# 安装头文件到 include/cpp_toolkit 下
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include/
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/cpp-toolkit
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/cpp_toolkit
     FILES_MATCHING
         PATTERN "*.h"
         PATTERN "*.hpp"
